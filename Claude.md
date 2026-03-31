@@ -4,7 +4,7 @@
 
 Next.js 16 SaaS Starter Kit。Monorepo 架构，基于 Turborepo + pnpm workspace。目标：让开发者在几天内搭建生产级 SaaS 应用。
 
-技术栈：Next.js 16.2 / React 19.2 / TypeScript 5.7 / Tailwind CSS v4 / shadcn/ui / Drizzle ORM / PostgreSQL 16 / Better Auth / Stripe / React Email + Resend / Vitest + Playwright / Biome / Turborepo / pnpm 9
+技术栈：Next.js 16.2 / React 19.2 / TypeScript 5.7 / Tailwind CSS v4 / shadcn/ui / Drizzle ORM / PostgreSQL 17 / Better Auth / Stripe / React Email + Resend / Vitest + Playwright / Biome / Turborepo / pnpm 9
 
 ---
 

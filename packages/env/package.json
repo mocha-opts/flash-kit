@@ -1,0 +1,16 @@
+{
+  "name": "@flash-kit/env",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@t3-oss/env-nextjs": "^0.13",
+    "zod": "^4.3"
+  },
+  "devDependencies": {
+    "@flash-kit/tsconfig": "workspace:*",
+    "@types/node": "^22",
+    "typescript": "^5.7"
+  }
+}
