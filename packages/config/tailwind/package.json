@@ -1,0 +1,11 @@
+{
+  "name": "@flash-kit/tailwind-config",
+  "private": true,
+  "exports": {
+    "./preset": "./preset.ts"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4",
+    "tailwindcss-animate": "latest"
+  }
+}
