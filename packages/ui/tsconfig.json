@@ -1,0 +1,5 @@
+{
+  "extends": "@flash-kit/tsconfig/library",
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

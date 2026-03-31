@@ -1,0 +1,22 @@
+{
+  "name": "@flash-kit/ui",
+  "private": true,
+  "exports": {
+    "./components/*": "./src/components/*.tsx",
+    "./lib/*": "./src/lib/*.ts",
+    "./hooks/*": "./src/hooks/*.ts"
+  },
+  "scripts": {
+    "fix-imports": "tsx scripts/fix-imports.ts"
+  },
+  "dependencies": {
+    "tailwind-merge": "^3",
+    "clsx": "^2",
+    "class-variance-authority": "^0.7",
+    "lucide-react": "^0.400"
+  },
+  "peerDependencies": {
+    "react": "^19.2",
+    "react-dom": "^19.2"
+  }
+}
