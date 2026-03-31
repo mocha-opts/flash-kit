@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint",
-    "format": "turbo format",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "lint:fix": "biome check --fix .",
     "clean": "turbo clean",
     "db:migrate": "turbo db:migrate",
     "db:seed": "turbo db:seed",
