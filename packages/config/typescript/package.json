@@ -1,4 +1,9 @@
 {
   "name": "@flash-kit/tsconfig",
-  "private": true
+  "private": true,
+  "exports": {
+    "./base": "./base.json",
+    "./nextjs": "./nextjs.json",
+    "./library": "./library.json"
+  }
 }

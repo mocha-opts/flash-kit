@@ -1,7 +1,11 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const COMPONENTS_DIR = join(import.meta.dirname, '..', 'src', 'components');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const COMPONENTS_DIR = join(__dirname, '..', 'src', 'components');
 
 const REPLACEMENTS: [RegExp, string][] = [
   [/from ["']@\/lib\/utils["']/g, 'from "../lib/utils"'],
