@@ -350,6 +350,8 @@ pnpm db:generate          # 生成 Drizzle 迁移
 pnpm db:migrate           # 执行迁移
 pnpm db:seed              # 填充种子数据
 pnpm db:studio            # 打开 Drizzle Studio
+pnpm db:check             # 数据完整性检查（检测孤儿数据）
+pnpm db:check:fix         # 检测并自动清理孤儿数据
 pnpm test                 # Vitest 单元测试
 pnpm test:e2e             # Playwright E2E 测试
 docker-compose up -d      # 启动本地 PostgreSQL + Redis

@@ -575,6 +575,8 @@ table, skeleton, progress, alert
 ```
 你是一个资深全栈工程师。创建用户和认证相关的 Drizzle schema。
 
+重要约束：本项目不使用物理外键（FOREIGN KEY）。所有引用列只写 uuid('xxx').notNull()，不写 .references()。关联关系通过 Drizzle relations() 定义在应用层。每个引用列必须手动添加 index()。
+
 路径：packages/database/src/schema/
 
 1. users.ts：
@@ -592,21 +594,23 @@ table, skeleton, progress, alert
 2. auth.ts：
    - sessions 表：
      - id: uuid primaryKey
-     - userId: uuid, references users.id, onDelete cascade
+     - userId: uuid("user_id"), notNull（不加 .references）
      - token: text, notNull, unique
      - ipAddress: text nullable
      - userAgent: text("user_agent") nullable
      - expiresAt: timestamp notNull
      - createdAt, updatedAt: timestamp defaultNow
+     - 第三参数添加 index: userIdIdx on userId
    - accounts 表：
      - id: uuid primaryKey
-     - userId: uuid, references users.id, onDelete cascade
+     - userId: uuid("user_id"), notNull（不加 .references）
      - provider: text notNull (如 'google', 'github', 'credential')
      - providerAccountId: text("provider_account_id") notNull
      - accessToken: text("access_token") nullable
      - refreshToken: text("refresh_token") nullable
      - expiresAt: timestamp nullable
      - createdAt: timestamp defaultNow
+     - 第三参数添加 index: userIdIdx on userId
    - verifications 表：
      - id: uuid primaryKey
      - identifier: text notNull
@@ -616,25 +620,36 @@ table, skeleton, progress, alert
      - createdAt: timestamp defaultNow
    - passkeys 表：
      - id: uuid primaryKey
-     - userId: uuid, references users.id, onDelete cascade
+     - userId: uuid("user_id"), notNull（不加 .references）
      - credentialId: text("credential_id") notNull unique
      - publicKey: text("public_key") notNull
      - counter: text notNull
      - deviceType: text("device_type") nullable
      - name: text nullable
      - createdAt: timestamp defaultNow
+     - 第三参数添加 index: userIdIdx on userId
    - twoFactors 表：
      - id: uuid primaryKey
-     - userId: uuid, references users.id, onDelete cascade
+     - userId: uuid("user_id"), notNull（不加 .references）
      - secret: text notNull
      - backupCodes: text("backup_codes") notNull
      - enabled: boolean default(false)
      - createdAt: timestamp defaultNow
+     - 第三参数添加 index: userIdIdx on userId
 
-3. 更新 index.ts：导出 users.ts 和 auth.ts 中的所有表和枚举
+3. auth.ts 中添加 Drizzle relations 定义：
+   - sessionsRelations: session belongs to user（fields: [sessions.userId], references: [users.id]）
+   - accountsRelations: account belongs to user
+   - passkeysRelations: passkey belongs to user
+   - twoFactorsRelations: twoFactor belongs to user
+
+4. users.ts 中添加 usersRelations：
+   - users has many sessions, accounts, passkeys, twoFactors
+
+5. 更新 index.ts：导出 users.ts 和 auth.ts 中的所有表、枚举和 relations
 
 使用 drizzle-orm/pg-core 中的类型。所有 timestamp 使用 { withTimezone: true, mode: 'date' }。
-验收标准：所有外键引用正确，枚举定义正确，TypeScript 编译通过。
+验收标准：无任何 .references() 调用，所有引用列有 index，relations 定义正确，TypeScript 编译通过。
 ```
 
 ---
@@ -653,6 +668,8 @@ table, skeleton, progress, alert
 ```
 你是一个资深全栈工程师。创建多租户相关的 Drizzle schema。
 
+重要约束：本项目不使用物理外键（FOREIGN KEY）。所有引用列只写 uuid('xxx').notNull()，不写 .references()。关联关系通过 Drizzle relations() 定义。每个引用列必须手动添加 index()。
+
 路径：packages/database/src/schema/organizations.ts
 
 1. organizations 表：
@@ -661,40 +678,46 @@ table, skeleton, progress, alert
    - slug: text, notNull, unique（URL 标识，如 /my-team）
    - logoUrl: text("logo_url"), nullable
    - isPersonal: boolean("is_personal"), default(false), notNull
-   - ownerId: uuid("owner_id"), references users.id, notNull
+   - ownerId: uuid("owner_id"), notNull（不加 .references，逻辑引用 users.id）
    - createdAt, updatedAt: timestamp defaultNow
+   - 第三参数添加 index: ownerIdIdx on ownerId
 
 2. orgRoleEnum: pgEnum('org_role', ['owner', 'admin', 'member', 'viewer'])
 
 3. memberships 表：
    - id: uuid, defaultRandom, primaryKey
-   - userId: uuid("user_id"), references users.id, onDelete cascade, notNull
-   - orgId: uuid("org_id"), references organizations.id, onDelete cascade, notNull
+   - userId: uuid("user_id"), notNull（不加 .references）
+   - orgId: uuid("org_id"), notNull（不加 .references）
    - role: orgRoleEnum, default 'member', notNull
    - joinedAt: timestamp("joined_at"), defaultNow
-   - 添加 unique 约束: (userId, orgId) 组合唯一
+   - 第三参数添加：
+     - unique 约束: (userId, orgId) 组合唯一
+     - userIdIdx: index on userId
+     - orgIdIdx: index on orgId
 
 4. invitationStatusEnum: pgEnum('invitation_status', ['pending', 'accepted', 'expired', 'revoked'])
 
 5. invitations 表：
    - id: uuid, defaultRandom, primaryKey
-   - orgId: uuid("org_id"), references organizations.id, onDelete cascade, notNull
+   - orgId: uuid("org_id"), notNull（不加 .references）
    - email: text, notNull
    - role: orgRoleEnum, default 'member', notNull
    - token: text, notNull, unique
    - status: invitationStatusEnum, default 'pending', notNull
-   - invitedById: uuid("invited_by_id"), references users.id, notNull
+   - invitedById: uuid("invited_by_id"), notNull（不加 .references）
    - expiresAt: timestamp("expires_at"), notNull
    - createdAt: timestamp, defaultNow
+   - 第三参数添加 index: orgIdIdx on orgId, invitedByIdIdx on invitedById
 
-6. 添加 Drizzle relations 定义：
-   - users: 有多个 memberships
-   - organizations: 有多个 memberships, 有多个 invitations, 属于一个 owner(user)
-   - memberships: 属于一个 user, 属于一个 organization
+6. 添加 Drizzle relations 定义（纯应用层，不生成 DDL）：
+   - organizationsRelations: has many memberships, has many invitations, has one owner (users)
+   - membershipsRelations: belongs to user, belongs to organization
+   - invitationsRelations: belongs to organization, belongs to inviter (users)
+   - 更新 usersRelations（在 users.ts 中）：追加 has many memberships, has many organizations (as owner)
 
 7. 更新 index.ts：导出所有新表、枚举和 relations
 
-验收标准：relations 定义正确，unique 约束正确，外键 onDelete 行为正确。
+验收标准：无任何 .references() 调用，所有引用列有 index，unique 约束正确，relations 定义正确。
 ```
 
 ---
@@ -714,13 +737,15 @@ table, skeleton, progress, alert
 ```
 你是一个资深全栈工程师。创建计费和 API Key 相关的 Drizzle schema。
 
+重要约束：本项目不使用物理外键（FOREIGN KEY）。所有引用列只写 uuid('xxx').notNull()，不写 .references()。关联关系通过 Drizzle relations() 定义。每个引用列必须手动添加 index()。
+
 路径：packages/database/src/schema/
 
 1. subscriptions.ts：
    - subStatusEnum: pgEnum('subscription_status', ['active', 'trialing', 'past_due', 'canceled', 'unpaid', 'paused', 'incomplete'])
    - subscriptions 表：
      - id: uuid primaryKey
-     - orgId: uuid("org_id"), references organizations.id, onDelete cascade, notNull
+     - orgId: uuid("org_id"), notNull（不加 .references）
      - status: subStatusEnum, notNull
      - planId: text("plan_id"), notNull（对应 billing config 中的 plan 标识）
      - provider: text, notNull（'stripe' | 'paddle' | 'lemonsqueezy'）
@@ -734,12 +759,13 @@ table, skeleton, progress, alert
      - trialEnd: timestamp("trial_end"), nullable
      - metadata: jsonb, nullable（存储自定义计费数据）
      - createdAt, updatedAt: timestamp defaultNow
-   - 添加 relation: 属于一个 organization
+   - 第三参数添加 index: orgIdIdx on orgId
+   - 添加 relation: belongs to organization
 
 2. api-keys.ts：
    - apiKeys 表：
      - id: uuid primaryKey
-     - orgId: uuid("org_id"), references organizations.id, onDelete cascade, notNull
+     - orgId: uuid("org_id"), notNull（不加 .references）
      - name: text, notNull（用户给 key 起的名字）
      - keyHash: text("key_hash"), notNull, unique（存 hash，不存明文）
      - keyPrefix: text("key_prefix"), notNull（如 "sk_live_abc..."，用于显示）
@@ -747,11 +773,14 @@ table, skeleton, progress, alert
      - lastUsedAt: timestamp("last_used_at"), nullable
      - expiresAt: timestamp("expires_at"), nullable
      - createdAt: timestamp defaultNow
-   - 添加 relation: 属于一个 organization
+   - 第三参数添加 index: orgIdIdx on orgId
+   - 添加 relation: belongs to organization
 
-3. 更新 index.ts：导出所有新内容
+3. 更新 organizationsRelations（在 organizations.ts 中）：追加 has many subscriptions, has many apiKeys
 
-验收标准：jsonb 字段类型正确，所有 relation 引用正确。
+4. 更新 index.ts：导出所有新内容
+
+验收标准：无任何 .references() 调用，所有引用列有 index，jsonb 字段类型正确，relations 引用正确。
 ```
 
 ---
@@ -778,12 +807,12 @@ table, skeleton, progress, alert
    - 导入 db 和所有 schema
    - 创建以下种子数据：
      a. Super Admin 用户：
-        - email: "admin@flashkit.dev"
+        - email: "admin@saaskit.dev"
         - name: "Super Admin"
         - globalRole: "super_admin"
         - emailVerified: true
      b. 测试用户：
-        - email: "user@flashkit.dev"
+        - email: "user@saaskit.dev"
         - name: "Test User"
         - globalRole: "user"
         - emailVerified: true
@@ -813,6 +842,78 @@ table, skeleton, progress, alert
 - docker-compose up -d 后，pnpm db:migrate 成功
 - pnpm db:seed 成功插入数据
 - pnpm db:studio 可以在浏览器中看到数据
+```
+
+---
+
+### Plan 1.6 — 数据完整性检查 + 应用层删除工具
+
+**目标**：创建孤儿数据检查脚本和应用层级联删除工具函数
+
+**产出文件**：
+
+- `packages/database/src/operations/delete-org.ts`
+- `packages/database/src/operations/delete-user.ts`
+- `packages/database/src/operations/index.ts`
+- `tooling/scripts/integrity-check.ts`
+
+**Prompt**:
+
+```
+你是一个资深全栈工程师。由于本项目不使用物理外键，需要创建应用层的级联删除工具和数据完整性检查脚本。
+
+1. packages/database/src/operations/delete-org.ts：
+   - 导出 deleteOrganizationCascade(orgId: string)
+   - 在单个事务中按依赖顺序删除：
+     1. apiKeys where orgId
+     2. invitations where orgId
+     3. subscriptions where orgId
+     4. memberships where orgId
+     5. organizations where id = orgId
+   - 返回 { deletedCounts: { apiKeys, invitations, subscriptions, memberships, organizations } }
+   - 不处理 Stripe 取消（调用方负责在调用前取消 Stripe 订阅）
+
+2. packages/database/src/operations/delete-user.ts：
+   - 导出 deleteUserCascade(userId: string)
+   - 在单个事务中按依赖顺序删除：
+     1. sessions where userId
+     2. accounts where userId
+     3. passkeys where userId
+     4. twoFactors where userId
+     5. 查找该用户的 personal org（isPersonal=true, ownerId=userId）
+     6. 如果有 personal org，调用 deleteOrganizationCascade(personalOrgId)（在同一事务中内联执行）
+     7. memberships where userId（从非 personal 的 org 中移除）
+     8. users where id = userId
+   - 不允许删除 globalRole = 'super_admin' 的用户（throw Error）
+   - 不允许删除是某个非 personal org 唯一 owner 的用户（throw Error，需先转让 ownership）
+
+3. packages/database/src/operations/index.ts：
+   - 导出 deleteOrganizationCascade 和 deleteUserCascade
+
+4. tooling/scripts/integrity-check.ts：
+   - 可通过 tsx 直接运行
+   - 检查以下孤儿数据：
+     a. memberships.userId 不存在于 users.id
+     b. memberships.orgId 不存在于 organizations.id
+     c. subscriptions.orgId 不存在于 organizations.id
+     d. invitations.orgId 不存在于 organizations.id
+     e. sessions.userId 不存在于 users.id
+     f. accounts.userId 不存在于 users.id
+     g. apiKeys.orgId 不存在于 organizations.id
+   - 每项检查使用 LEFT JOIN ... WHERE ... IS NULL
+   - 输出报告：每种孤儿数据的数量
+   - 如果发现孤儿数据，exit code 1；否则 exit code 0
+   - 添加 --fix 参数：传入时自动删除孤儿记录（在事务中）
+
+5. 在根目录 package.json 添加 script：
+   - "db:check": "tsx tooling/scripts/integrity-check.ts"
+   - "db:check:fix": "tsx tooling/scripts/integrity-check.ts --fix"
+
+验收标准：
+- deleteOrganizationCascade 在事务中完成，中途失败全部回滚
+- deleteUserCascade 阻止删除 super_admin 和唯一 owner
+- integrity-check 正确检测手动插入的孤儿数据
+- --fix 参数正确清理孤儿数据
 ```
 
 ---
@@ -1352,7 +1453,8 @@ table, skeleton, progress, alert
    - deleteOrganization(orgId):
      - requireOrgRole(orgId, ['owner'])
      - 不允许删除 isPersonal=true 的组织
-     - 删除组织（cascade 会删除 memberships, invitations, subscriptions）
+     - 在事务中按依赖顺序显式删除：apiKeys → invitations → subscriptions → memberships → organizations
+     - 如果有活跃 Stripe 订阅，先调用 stripe.subscriptions.cancel
      - redirect('/dashboard')
 
 使用 React Hook Form + Zod 验证。使用 shadcn: Card, Input, Button, AlertDialog, Tabs。
@@ -2016,7 +2118,7 @@ table, skeleton, progress, alert
 
 4. actions.ts ('use server')：
    - updateProfile(name, avatarUrl): 更新 users 表
-   - deleteAccount(): 删除用户（cascade 删除所有关联数据），但不能删除 super_admin
+   - deleteAccount(): 在事务中按依赖顺序显式删除用户关联数据（sessions → accounts → passkeys → twoFactors → memberships → 如果是 personal org 则删除该 org 及其子数据），不能删除 super_admin
    - revokeSession(sessionId): 删除指定 session
    - revokeAllOtherSessions(): 删除除当前 session 外的所有 session
 
@@ -2263,9 +2365,10 @@ Phase 1 (数据库) ← Phase 0
   1.3 Org Schema ← 1.2
   1.4 Billing Schema ← 1.3
   1.5 迁移 + Seed ← 1.4
+  1.6 完整性检查 + 删除工具 ← 1.5
 
 Phase 2 (认证) ← Phase 1
-  2.1 Auth 核心 ← 1.5
+  2.1 Auth 核心 ← 1.6
   2.2 Session 工具 ← 2.1
   2.3 API 路由 ← 2.2, 0.5
   2.4 Auth UI ← 2.3, 0.7
@@ -2315,5 +2418,5 @@ Phase 13 (收尾) ← All
 
 ---
 
-_共计 13 个 Phase，30 个 Plan，每个 Plan 可由 Claude Code 在单次会话中完成。_
+_共计 13 个 Phase，31 个 Plan，每个 Plan 可由 Claude Code 在单次会话中完成。_
 _建议严格按照依赖顺序执行，每完成一个 Plan 后验证再继续下一个。_
