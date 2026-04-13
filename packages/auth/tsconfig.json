@@ -1,0 +1,9 @@
+{
+  "extends": "@flash-kit/tsconfig/library",
+  "compilerOptions": {
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
