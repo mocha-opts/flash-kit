@@ -379,6 +379,55 @@ docker-compose up -d      # 启动本地 PostgreSQL + Redis
 
 ---
 
+## 环境变量策略
+
+`.env.local` 放在 monorepo 根目录，一份管所有。
+
+```
+运行场景                       DATABASE_URL 从哪来
+─────────────────────────────────────────────────────
+Next.js (dev/build/start)     Next.js 自动加载根目录 .env.local
+drizzle-kit (CLI)             drizzle.config.ts 中 dotenv 手动加载
+seed.ts / integrity-check     脚本顶部 dotenv 手动加载
+```
+
+**`@flash-kit/env`（t3-env + Zod 验证）只在 `apps/web` 内使用。** 它依赖 Next.js 构建流程，在 drizzle-kit、seed 等独立 Node.js 进程中不可用。
+
+`packages/database` 内部全部用 `process.env` + `dotenv`：
+
+```typescript
+// packages/database/drizzle.config.ts
+import { config } from "dotenv";
+import { defineConfig } from "drizzle-kit";
+
+config({ path: "../../.env.local" }); // 向上两级到 monorepo 根目录
+
+export default defineConfig({
+  schema: "./src/schema/index.ts",
+  out: "./src/migrations",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+});
+```
+
+```typescript
+// packages/database/src/client.ts — 不加 dotenv
+// Next.js 运行时由 Next.js 加载；独立脚本由脚本自己加载
+const client = postgres(process.env.DATABASE_URL!);
+```
+
+```typescript
+// packages/database/src/seed.ts — 脚本顶部加载
+import { config } from "dotenv";
+config({ path: "../../../.env.local" });
+```
+
+依赖：`packages/database` 需要安装 `dotenv`。
+
+---
+
 ## 部署
 
 支持三种部署目标：
@@ -387,7 +436,7 @@ docker-compose up -d      # 启动本地 PostgreSQL + Redis
 - **Cloudflare Workers + Pages**：通过 Build Adapter
 - **Docker 自部署**：`docker build` + `docker-compose`，适配 Coolify / Railway
 
-环境变量通过 `@flash-kit/env` 包做 Zod 验证，缺少必要变量时构建失败而非运行时报错。
+环境变量分两层验证：`@flash-kit/env`（apps/web 内，Zod 验证，缺少必要变量时构建失败）和 `process.env` + `dotenv`（packages/database 内，CLI 工具用）。
 
 ---
 
@@ -405,6 +454,7 @@ docker-compose up -d      # 启动本地 PostgreSQL + Redis
 - 不要在权限检查前执行数据变更操作
 - 不要硬编码 Stripe Price ID（通过环境变量注入）
 - 不要在 `.env.local` 中提交真实密钥
+- 不要在 `packages/database` 中 import `@flash-kit/env` — 用 `process.env` + `dotenv`
 - 不要在 Drizzle schema 中使用 `.references()` 或物理外键约束
 - 不要使用 `ON DELETE CASCADE` — 删除逻辑在应用层事务中显式控制
 - 不要在没有 index 的列上做 JOIN 或 WHERE 查询
