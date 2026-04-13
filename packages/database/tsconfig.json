@@ -1,9 +1,9 @@
 {
   "extends": "@flash-kit/tsconfig/library",
   "compilerOptions": {
-    "rootDir": "./src",
+    "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "drizzle.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

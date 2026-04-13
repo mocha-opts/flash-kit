@@ -410,6 +410,8 @@ table, skeleton, progress, alert
 ```
 你是一个资深全栈工程师。创建环境变量验证包。
 
+重要：此包仅在 apps/web（Next.js 运行时）中使用。packages/database 等独立运行的包不能使用此包，它们直接用 process.env + dotenv。
+
 路径：packages/env/
 
 1. package.json：
@@ -435,10 +437,13 @@ table, skeleton, progress, alert
    - skipValidation: !!process.env.SKIP_ENV_VALIDATION（CI 构建时跳过）
    - 导出 env 对象
 
-3. 根目录创建 .env.example：
+3. 在 monorepo 根目录创建 .env.example：
    - 列出所有环境变量，值为占位符注释
+   - 顶部注释说明：复制为 .env.local 使用
 
-验收标准：TypeScript 类型正确，导出的 env 对象有完整的类型提示。
+注意：.env.local 放在 monorepo 根目录，Next.js 和 packages/database 的 dotenv 都从这里读取。
+
+验收标准：TypeScript 类型正确，导出的 env 对象有完整的类型提示。在 apps/web 中 import { env } from '@flash-kit/env' 可用。
 ```
 
 ---
@@ -471,7 +476,8 @@ table, skeleton, progress, alert
        - healthcheck: redis-cli ping
    - volumes: postgres_data
 
-2. .env.local（本地开发用，.gitignore 已排除）：
+2. .env.local（放在 monorepo 根目录，.gitignore 已排除）：
+   - 这是整个项目唯一的 env 文件，Next.js 和 packages/database 的 dotenv 都从这里读取
    - DATABASE_URL=postgresql://postgres:postgres@localhost:5432/flashkit
    - BETTER_AUTH_SECRET=dev-secret-change-in-production
    - STRIPE_SECRET_KEY=sk_test_xxx
@@ -508,6 +514,8 @@ table, skeleton, progress, alert
 ```
 你是一个资深全栈工程师。创建 database 包，配置 Drizzle ORM。
 
+重要：database 包不使用 @flash-kit/env（t3-env），因为 drizzle-kit、seed 等是独立 Node.js 进程，不经过 Next.js 构建流程。环境变量通过 process.env 读取，CLI 工具场景用 dotenv 手动加载根目录的 .env.local。
+
 路径：packages/database/
 
 1. package.json：
@@ -526,7 +534,7 @@ table, skeleton, progress, alert
    - dependencies:
      - drizzle-orm "^0.38"
      - postgres "^3.4" (node-postgres 的现代替代)
-     - @flash-kit/env (workspace:*)
+     - dotenv "^16"
    - devDependencies:
      - drizzle-kit "^0.30"
      - tsx "^4"
@@ -536,6 +544,7 @@ table, skeleton, progress, alert
    - extends: "@flash-kit/tsconfig/library"
 
 3. drizzle.config.ts：
+   - 顶部: import { config } from 'dotenv' 然后 config({ path: '../../.env.local' })
    - schema: "./src/schema/index.ts"
    - out: "./src/migrations"
    - dialect: "postgresql"
@@ -547,15 +556,19 @@ table, skeleton, progress, alert
    - 使用 postgres 包（import postgres from 'postgres'）创建连接
    - 使用 drizzle(client, { schema }) 创建 db 实例
    - 导出 db
-   - 连接字符串从 @flash-kit/env 获取
+   - 连接字符串直接从 process.env.DATABASE_URL! 获取
+   - 不加 dotenv — 在 Next.js 运行时中由 Next.js 自动加载，在独立脚本中由脚本自己加载
 
 5. src/index.ts：
    - 导出 db from "./client"
    - 导出所有 schema from "./schema"
 
 不要创建 schema 文件，那是下一个 Plan 的任务。
+不要 import @flash-kit/env，不要把它加到依赖中。
 创建空目录：src/schema/, src/migrations/
-验收标准：TypeScript 编译不报错，drizzle.config.ts 路径正确。
+验收标准：
+- TypeScript 编译不报错
+- 根目录有 .env.local 且含 DATABASE_URL 时，pnpm db:studio 可正常启动
 ```
 
 ---
@@ -804,7 +817,10 @@ table, skeleton, progress, alert
    这会根据 schema 自动生成 SQL 迁移文件到 src/migrations/
 
 2. 创建 src/seed.ts：
-   - 导入 db 和所有 schema
+   - 文件最顶部加载环境变量：
+     import { config } from 'dotenv';
+     config({ path: '../../../.env.local' });
+   - 然后导入 db 和所有 schema
    - 创建以下种子数据：
      a. Super Admin 用户：
         - email: "admin@saaskit.dev"
@@ -891,6 +907,9 @@ table, skeleton, progress, alert
    - 导出 deleteOrganizationCascade 和 deleteUserCascade
 
 4. tooling/scripts/integrity-check.ts：
+   - 文件最顶部加载环境变量：
+     import { config } from 'dotenv';
+     config({ path: '../../.env.local' });
    - 可通过 tsx 直接运行
    - 检查以下孤儿数据：
      a. memberships.userId 不存在于 users.id
@@ -951,7 +970,7 @@ table, skeleton, progress, alert
    - dependencies:
      - better-auth "^1"
      - @flash-kit/database (workspace:*)
-     - @flash-kit/env (workspace:*)
+   注意：auth 包在 Next.js 运行时中运行，process.env 由 Next.js 自动加载，不需要 dotenv 也不需要 @flash-kit/env。
 
 2. src/server.ts：
    - 使用 betterAuth() 创建 auth 实例
@@ -960,7 +979,7 @@ table, skeleton, progress, alert
    - emailAndPassword: enabled, requireEmailVerification true
      - sendResetPassword: async 占位函数（console.log 替代，后续 Plan 接入邮件）
      - sendVerificationEmail: async 占位函数
-   - socialProviders: google 和 github（从 env 读取 clientId/clientSecret）
+   - socialProviders: google 和 github（从 process.env 读取 clientId/clientSecret）
    - plugins: 暂时为空数组（后续 Plan 逐步添加 organization, passkey, twoFactor, magicLink）
    - 导出 auth 和 Auth 类型
 

@@ -4,7 +4,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
-    "./schema": "./src/schema/index.ts"
+    "./schema": "./src/schema/index.ts",
+    "./operations": "./src/operations/index.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
@@ -14,15 +15,16 @@
     "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
+    "@flash-kit/env": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "postgres": "^3.4",
-    "@flash-kit/env": "workspace:*"
+    "postgres": "^3.4"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.10",
-    "tsx": "^4",
     "@flash-kit/tsconfig": "workspace:*",
     "@types/node": "^22",
+    "dotenv": "^17.3.1",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4",
     "typescript": "^5.7"
   }
 }

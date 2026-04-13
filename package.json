@@ -12,7 +12,9 @@
     "db:migrate": "turbo db:migrate",
     "db:seed": "turbo db:seed",
     "db:studio": "turbo db:studio",
-    "typecheck": "turbo typecheck"
+    "typecheck": "turbo typecheck",
+    "db:check": "pnpm --filter @flash-kit/scripts integrity-check",
+    "db:check:fix": "pnpm --filter @flash-kit/scripts integrity-check:fix"
   },
   "devDependencies": {
     "turbo": "latest",

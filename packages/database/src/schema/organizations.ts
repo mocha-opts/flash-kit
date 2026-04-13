@@ -10,6 +10,8 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+import { apiKeys } from './api-keys';
+import { subscriptions } from './subscriptions';
 import { users } from './users';
 
 // ---------------------------------------------------------------------------
@@ -56,6 +58,8 @@ export const organizationsRelations = relations(organizations, ({ one, many }) =
   }),
   memberships: many(memberships),
   invitations: many(invitations),
+  subscriptions: many(subscriptions),
+  apiKeys: many(apiKeys),
 }));
 
 // ---------------------------------------------------------------------------
