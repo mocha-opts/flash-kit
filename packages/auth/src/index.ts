@@ -8,3 +8,18 @@ export {
   signOut,
   useSession,
 } from './client';
+
+export {
+  getCurrentUser,
+  getCurrentSession,
+  requireAuth,
+  getOrgContext,
+} from './session';
+
+export {
+  requireOrgRole,
+  requireSuperAdmin,
+  AuthError,
+} from './guards';
+
+export type { OrgRole } from './guards';

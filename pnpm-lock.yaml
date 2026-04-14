@@ -63,6 +63,15 @@ importers:
       better-auth:
         specifier: ^1
         version: 1.6.2(@opentelemetry/api@1.9.1)(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@opentelemetry/api@1.9.1)(gel@2.2.0)(kysely@0.28.16)(postgres@3.4.8))(next@16.2.1(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@opentelemetry/api@1.9.1)(gel@2.2.0)(kysely@0.28.16)(postgres@3.4.8)
+      next:
+        specifier: '>=16'
+        version: 16.2.1(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: '>=19'
+        version: 19.2.4
     devDependencies:
       '@flash-kit/tsconfig':
         specifier: workspace:*
@@ -70,6 +79,9 @@ importers:
       '@types/node':
         specifier: ^22
         version: 22.19.15
+      '@types/react':
+        specifier: ^19
+        version: 19.2.14
       typescript:
         specifier: ^5.7
         version: 5.9.3
@@ -192,25 +204,6 @@ importers:
       '@types/react-dom':
         specifier: ^19
         version: 19.2.3(@types/react@19.2.14)
-      typescript:
-        specifier: ^5.7
-        version: 5.9.3
-
-  tooling/scripts:
-    dependencies:
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(@opentelemetry/api@1.9.1)(gel@2.2.0)(kysely@0.28.16)(postgres@3.4.8)
-      postgres:
-        specifier: ^3.4
-        version: 3.4.8
-    devDependencies:
-      dotenv:
-        specifier: ^17.3.1
-        version: 17.3.1
-      tsx:
-        specifier: ^4
-        version: 4.21.0
       typescript:
         specifier: ^5.7
         version: 5.9.3
