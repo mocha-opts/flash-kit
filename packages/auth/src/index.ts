@@ -14,6 +14,8 @@ export {
   getCurrentSession,
   requireAuth,
   getOrgContext,
+  getProxySession,
+  isSuperAdmin,
 } from './session';
 
 export {

@@ -1,15 +1,36 @@
-import { cache } from 'react';
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
-import { eq, and } from 'drizzle-orm';
+import { cache } from "react";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { eq, and } from "drizzle-orm";
 
-import { auth } from './server';
-import { db } from '@flash-kit/database/client';
+import { auth } from "./server";
+import { db } from "@flash-kit/database/client";
 import {
   memberships,
   organizations,
   subscriptions,
-} from '@flash-kit/database/schema';
+  users,
+} from "@flash-kit/database/schema";
+
+// ---------------------------------------------------------------------------
+// Proxy-safe helpers (no React cache, accept raw Headers)
+// ---------------------------------------------------------------------------
+
+export async function getProxySession(reqHeaders: Headers) {
+  return await auth.api.getSession({ headers: reqHeaders });
+}
+
+export async function isSuperAdmin(userId: string): Promise<boolean> {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { globalRole: true },
+  });
+  return user?.globalRole === "super_admin";
+}
+
+// ---------------------------------------------------------------------------
+// React cache-wrapped helpers (Server Components / Server Actions)
+// ---------------------------------------------------------------------------
 
 export const getCurrentUser = cache(async () => {
   const session = await auth.api.getSession({
@@ -31,7 +52,7 @@ export async function requireAuth() {
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/sign-in');
+    redirect("/sign-in");
   }
 
   return user;
@@ -47,16 +68,14 @@ export async function getOrgContext(orgSlug: string) {
   if (!org) return null;
 
   const membership = await db.query.memberships.findFirst({
-    where: and(
-      eq(memberships.userId, user.id),
-      eq(memberships.orgId, org.id),
-    ),
+    where: and(eq(memberships.userId, user.id), eq(memberships.orgId, org.id)),
   });
   if (!membership) return null;
 
-  const subscription = await db.query.subscriptions.findFirst({
-    where: eq(subscriptions.orgId, org.id),
-  }) ?? null;
+  const subscription =
+    (await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.orgId, org.id),
+    })) ?? null;
 
   return { user, org, membership, subscription };
 }

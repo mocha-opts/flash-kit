@@ -6,7 +6,8 @@
     "./server": "./src/server.ts",
     "./client": "./src/client.ts",
     "./session": "./src/session.ts",
-    "./guards": "./src/guards.ts"
+    "./guards": "./src/guards.ts",
+    "./handler": "./src/handler.ts"
   },
   "dependencies": {
     "@flash-kit/database": "workspace:*",

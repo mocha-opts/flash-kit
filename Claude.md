@@ -458,3 +458,4 @@ config({ path: "../../../.env.local" });
 - 不要在 Drizzle schema 中使用 `.references()` 或物理外键约束
 - 不要使用 `ON DELETE CASCADE` — 删除逻辑在应用层事务中显式控制
 - 不要在没有 index 的列上做 JOIN 或 WHERE 查询
+- 不要在 apps/web 中直接依赖底层库（better-auth, drizzle-orm, stripe 等）— 通过对应的 @flash-kit/\* 包间接使用
