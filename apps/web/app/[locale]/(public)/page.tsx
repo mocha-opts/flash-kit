@@ -3,7 +3,7 @@ import { getTranslations } from '@repo/i18n/server';
 import { Link } from '@repo/i18n/navigation';
 import { notFound } from 'next/navigation';
 import { buttonVariants } from '@repo/ui/button';
-import { LaunchRail } from '@/components/public-shell/launch-rail';
+import { LaunchRail } from './_components/launch-rail';
 
 type LandingPageProps = {
   readonly params: Promise<{ locale: string }>;

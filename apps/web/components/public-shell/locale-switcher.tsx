@@ -13,17 +13,16 @@ import {
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-type LocaleSwitcherProps = {
+export type LocaleSwitcherProps = {
   readonly locale: Locale;
   readonly label: string;
   readonly englishLabel: string;
   readonly chineseLabel: string;
 };
 
-export function LocaleSwitcherFallback({
-  locale,
-  label,
-}: Pick<LocaleSwitcherProps, 'locale' | 'label'>) {
+export type LocaleSwitcherFallbackProps = Pick<LocaleSwitcherProps, 'locale' | 'label'>;
+
+export function LocaleSwitcherFallback({ locale, label }: LocaleSwitcherFallbackProps) {
   return (
     <Button aria-label={label} className="gap-2 px-3" size="sm" variant="ghost">
       <span aria-hidden="true" className="font-mono text-[0.68rem] uppercase tracking-[0.18em]">

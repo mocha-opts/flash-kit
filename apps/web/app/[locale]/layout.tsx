@@ -6,8 +6,6 @@ import { locales, isLocale, type Locale } from '@repo/i18n/config';
 import { I18nProvider } from '@repo/i18n/client';
 import { getTranslations, setRequestLocale } from '@repo/i18n/server';
 import { ThemeProvider } from '@repo/ui/theme';
-import { PublicFooter } from '@/components/public-shell/footer';
-import { PublicHeader } from '@/components/public-shell/header';
 import '../globals.css';
 
 export const viewport: Viewport = {
@@ -58,11 +56,7 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <I18nProvider locale={locale}>
-            <PublicHeader locale={locale} />
-            {children}
-            <PublicFooter locale={locale} />
-          </I18nProvider>
+          <I18nProvider locale={locale}>{children}</I18nProvider>
         </ThemeProvider>
       </body>
     </html>

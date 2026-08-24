@@ -17,7 +17,7 @@ type MobileNavigationLink = {
   readonly label: string;
 };
 
-type MobileNavigationProps = {
+export type MobileNavigationProps = {
   readonly closeLabel: string;
   readonly description: string;
   readonly links: readonly MobileNavigationLink[];
@@ -25,6 +25,12 @@ type MobileNavigationProps = {
   readonly menuLabel: string;
   readonly openLabel: string;
 };
+
+export type MobileNavigationTriggerProps = {
+  readonly openLabel: string;
+};
+
+export type MobileNavigationPanelProps = Omit<MobileNavigationProps, 'openLabel'>;
 
 /** Mobile navigation uses the shared Radix Dialog and one ephemeral Zustand flag. */
 export function MobileNavigation({
@@ -54,7 +60,7 @@ export function MobileNavigation({
   );
 }
 
-function MobileNavigationTrigger({ openLabel }: { readonly openLabel: string }) {
+function MobileNavigationTrigger({ openLabel }: MobileNavigationTriggerProps) {
   return (
     <DialogTrigger asChild>
       <Button aria-label={openLabel} className="size-9 p-0 md:hidden" size="icon" variant="ghost">
@@ -67,8 +73,6 @@ function MobileNavigationTrigger({ openLabel }: { readonly openLabel: string }) 
     </DialogTrigger>
   );
 }
-
-type MobileNavigationPanelProps = Omit<MobileNavigationProps, 'openLabel'>;
 
 function MobileNavigationPanel({
   closeLabel,
