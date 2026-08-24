@@ -1,0 +1,28 @@
+{
+  "name": "@repo/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./client": "./src/client/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./queries/users": "./src/queries/users/index.ts",
+    "./queries/billing": "./src/queries/billing/index.ts",
+    "./queries/example": "./src/queries/example/index.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "imports": {
+    "#*": "./src/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "server-only": "catalog:"
+  },
+  "devDependencies": {
+    "@repo/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

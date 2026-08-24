@@ -1,0 +1,7 @@
+{
+  "extends": "@repo/tsconfig/node-library.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/**/*.ts"]
+}

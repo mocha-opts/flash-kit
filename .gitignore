@@ -1,4 +1,6 @@
 # Logs
+.DS_Store
+
 logs
 *.log
 npm-debug.log*
@@ -69,6 +71,10 @@ web_modules/
 .env
 .env.*
 !.env.example
+!apps/web/.env
+!apps/web/.env.development
+!apps/web/.env.example
+apps/web/.env.local
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -127,6 +133,9 @@ dist
 
 # pnpm
 .pnpm-store
+
+# Turborepo
+.turbo/
 
 # yarn v3
 .pnp.*

@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: flash_kit
+      POSTGRES_USER: flash_kit
+      POSTGRES_PASSWORD: flash_kit
+    ports:
+      - "54333:5432"
+    volumes:
+      - flash_kit_postgres_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flash_kit -d flash_kit"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  flash_kit_postgres_dev:

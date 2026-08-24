@@ -1,0 +1,42 @@
+{
+  "name": "flash-kit",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": "24.19.0",
+    "pnpm": "11.23.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "pnpm --filter web start",
+    "typecheck": "turbo run typecheck",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:unit",
+    "test": "turbo run test",
+    "test:unit": "turbo run test:unit",
+    "test:integration": "turbo run test:integration",
+    "test:e2e": "pnpm --filter web test:e2e",
+    "db:generate": "pnpm --filter @repo/db drizzle:generate",
+    "db:migrate": "pnpm --filter @repo/db drizzle:migrate",
+    "db:studio": "pnpm --filter @repo/db drizzle:studio",
+    "compose:up": "docker compose -f compose.dev.yml up -d",
+    "compose:down": "docker compose -f compose.dev.yml down",
+    "setup": "pnpm --filter @repo/scripts setup",
+    "deps:check": "manypkg check",
+    "deps:fix": "manypkg fix"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "catalog:",
+    "@manypkg/cli": "catalog:",
+    "@repo/biome-config": "workspace:*",
+    "@repo/scripts": "workspace:*",
+    "@repo/tsconfig": "workspace:*",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
+  }
+}
