@@ -6,6 +6,7 @@ import { serverEnv } from '#env/server/index';
 
 import { appConfigSchema } from './app-config.schema';
 
+/** Server-only application configuration parsed from the validated server environment. */
 export const appConfig = parseEnv(
   appConfigSchema,
   {

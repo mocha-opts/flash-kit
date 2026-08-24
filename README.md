@@ -19,9 +19,11 @@ Set up local configuration:
 cp apps/web/.env.example apps/web/.env.local
 ```
 
-Fill required secrets in `apps/web/.env.local` when you start implementing the
-server features that use them. The T01 apps only need the committed public and
-local defaults to render.
+Before starting Web, fill `apps/web/.env.local` with a `BETTER_AUTH_SECRET` of
+at least 32 characters and the secrets for the selected billing and mailer
+providers. Enable an OAuth provider only after adding its client ID and secret.
+The committed `.env` and `.env.development` files contain only public or local
+non-secret defaults; they are not a substitute for `.env.local`.
 
 Start local services:
 

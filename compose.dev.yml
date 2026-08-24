@@ -8,7 +8,7 @@ services:
     ports:
       - "54333:5432"
     volumes:
-      - flash_kit_postgres_dev:/var/lib/postgresql/data
+      - flash_kit_postgres_dev:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U flash_kit -d flash_kit"]
       interval: 10s

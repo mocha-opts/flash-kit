@@ -1,12 +1,14 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-import { cn } from '../utils/cn';
+import { cn } from '#utils/cn';
 
+/** Native button attributes plus the small variant set supported by this primitive. */
 export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   readonly variant?: 'primary' | 'secondary';
   readonly children: ReactNode;
 };
 
+/** Renders a reusable button with a submit-safe default `type="button"`. */
 export function Button({
   className,
   variant = 'primary',

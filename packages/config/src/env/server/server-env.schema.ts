@@ -46,6 +46,7 @@ const baseServerEnvSchema = z.object({
   SMTP_PASSWORD: z.string().optional(),
 });
 
+/** Validates server environment and conditionally requires secrets for selected providers. */
 export const serverEnvSchema = baseServerEnvSchema
   .superRefine((value, context) => {
     const urlResult =
@@ -121,4 +122,5 @@ function hasValue(value: string | undefined): boolean {
   return value !== undefined && value !== '';
 }
 
+/** Parsed server environment, including boolean convenience fields for enabled auth providers. */
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

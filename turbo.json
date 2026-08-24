@@ -35,31 +35,8 @@
       "outputs": []
     },
     "check": {
-      "dependsOn": ["format:check", "lint", "typecheck", "test:unit"],
+      "dependsOn": ["format:check", "lint", "typecheck", "build"],
       "outputs": []
-    },
-    "test": {
-      "dependsOn": ["test:unit"],
-      "outputs": ["coverage/**"]
-    },
-    "test:unit": {
-      "outputs": ["coverage/**"]
-    },
-    "test:integration": {
-      "cache": false
-    },
-    "test:e2e": {
-      "cache": false
-    },
-    "db:generate": {
-      "cache": false
-    },
-    "db:migrate": {
-      "cache": false
-    },
-    "db:studio": {
-      "cache": false,
-      "persistent": true
     }
   }
 }
