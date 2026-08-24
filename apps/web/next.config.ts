@@ -5,7 +5,6 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig = {
   experimental: {
-    globalNotFound: true,
     typedEnv: true,
     useTypeScriptCli: true,
   },

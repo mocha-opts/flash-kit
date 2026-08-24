@@ -1,7 +1,7 @@
 'use client';
 
-import { locales, type Locale } from '@repo/i18n/config';
-import { Link, usePathname } from '@repo/i18n/navigation';
+import { localeCookieName, locales, type Locale } from '@repo/i18n/config';
+import { getLocalizedPathname, usePathname } from '@repo/i18n/navigation';
 import { Button } from '@repo/ui/button';
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@repo/ui/dropdown-menu';
+import NextLink from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -40,6 +41,12 @@ const localeLabels: Record<
   en: 'englishLabel',
   'zh-CN': 'chineseLabel',
 };
+
+function setLocaleCookie(locale: Locale): void {
+  // The cookie must be updated before navigation so middleware can render the target locale directly.
+  // biome-ignore lint/suspicious/noDocumentCookie: The locale cookie needs a browser-side update before navigation.
+  document.cookie = `${localeCookieName}=${locale}; Path=/; SameSite=Lax`;
+}
 
 /** Locale menu that keeps the current route, query string, and hash while changing language. */
 export function LocaleSwitcher({ locale, label, englishLabel, chineseLabel }: LocaleSwitcherProps) {
@@ -73,18 +80,18 @@ export function LocaleSwitcher({ locale, label, englishLabel, chineseLabel }: Lo
       <DropdownMenuContent align="end" aria-label={label} className="min-w-44">
         <DropdownMenuLabel>{label}</DropdownMenuLabel>
         {locales.map((nextLocale) => (
-          <DropdownMenuItem key={nextLocale} asChild>
-            <Link
+          <DropdownMenuItem key={nextLocale} asChild onSelect={() => setLocaleCookie(nextLocale)}>
+            <NextLink
               aria-current={nextLocale === locale ? 'page' : undefined}
               className="flex w-full items-center justify-between gap-5"
-              href={href}
-              locale={nextLocale}
+              href={getLocalizedPathname({ locale: nextLocale, pathname: href })}
+              prefetch={false}
             >
               <span>{labels[localeLabels[nextLocale]]}</span>
               <span aria-hidden="true" className="font-mono text-xs text-muted-foreground">
                 {nextLocale === 'en' ? 'EN' : '中'}
               </span>
-            </Link>
+            </NextLink>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

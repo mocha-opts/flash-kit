@@ -1,5 +1,6 @@
 'use client';
 
+import type { Locale } from '@repo/i18n/config';
 import { Link } from '@repo/i18n/navigation';
 import { Button } from '@repo/ui/button';
 import {
@@ -21,7 +22,7 @@ export type MobileNavigationProps = {
   readonly closeLabel: string;
   readonly description: string;
   readonly links: readonly MobileNavigationLink[];
-  readonly locale: 'en' | 'zh-CN';
+  readonly locale: Locale;
   readonly menuLabel: string;
   readonly openLabel: string;
 };

@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
-import { locales, isLocale, type Locale } from '@repo/i18n/config';
+import { defaultLocale, isLocale, locales, type Locale } from '@repo/i18n/config';
 import { I18nProvider } from '@repo/i18n/client';
 import { getTranslations, setRequestLocale } from '@repo/i18n/server';
 import { ThemeProvider } from '@repo/ui/theme';
@@ -26,11 +25,8 @@ type LocaleMetadataProps = {
 };
 
 export async function generateMetadata({ params }: LocaleMetadataProps): Promise<Metadata> {
-  const { locale } = await params;
-
-  if (!isLocale(locale)) {
-    return {};
-  }
+  const { locale: requestedLocale } = await params;
+  const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
 
   const t = await getTranslations({ locale, namespace: 'metadata' });
 
@@ -44,11 +40,8 @@ export default async function LocaleLayout({
   children,
   params,
 }: LocaleLayoutProps): Promise<ReactNode> {
-  const { locale } = await params;
-
-  if (!isLocale(locale)) {
-    notFound();
-  }
+  const { locale: requestedLocale } = await params;
+  const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
 
   setRequestLocale(locale);
 
