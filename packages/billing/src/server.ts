@@ -57,7 +57,7 @@ export async function consumeCredits(): Promise<never> {
 }
 
 /**
- * Placeholder for a provider-neutral feature entitlement check.
+ * Placeholder for a provider-neutral feature access check.
  *
  * @throws {Error} Always in T01 because billing providers are not configured.
  */

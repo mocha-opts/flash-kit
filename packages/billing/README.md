@@ -4,7 +4,7 @@
 
 `@repo/billing` owns the provider-neutral billing boundary, catalog types, capability types, server API names, and future billing UI entry point. T01 does not implement Stripe, Polar, checkout, portal, subscriptions, purchases, credits, or webhooks.
 
-It does not depend on `@repo/auth`, does not export provider SDKs, and does not create customer, product, price, subscription, entitlement, or credit tables in this task.
+It does not depend on `@repo/auth`, does not export provider SDKs, and does not create customer, product, price, subscription, feature-access, or credit tables in this task.
 
 ## Dependencies
 

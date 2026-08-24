@@ -1,4 +1,4 @@
-import { defaultLocale, isLocale, localePrefix } from '#config/index';
+import { defaultLocale, isLocale, localePrefix, locales } from '#config/index';
 
 import type { Locale } from '#config/index';
 
@@ -11,7 +11,7 @@ export type RoutingConfig = {
 
 /** Canonical routing configuration; the default locale remains unprefixed. */
 export const routing: RoutingConfig = {
-  locales: ['en', 'zh-CN'],
+  locales,
   defaultLocale,
   localePrefix,
 };
