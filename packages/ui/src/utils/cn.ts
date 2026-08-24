@@ -1,7 +1,10 @@
-/** Values accepted by the lightweight class-name combiner. */
-export type ClassValue = string | false | null | undefined;
+import clsx from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-/** Joins string classes in order and omits false, null, and undefined values. */
-export function cn(...values: readonly ClassValue[]): string {
-  return values.filter((value): value is string => typeof value === 'string').join(' ');
+/** Values accepted by the class-name combiner, including conditional and nested values. */
+export type ClassValue = Parameters<typeof clsx>[number];
+
+/** Joins class names and resolves conflicting Tailwind utilities in the caller's favor. */
+export function cn(...values: ClassValue[]): string {
+  return twMerge(clsx(...values));
 }

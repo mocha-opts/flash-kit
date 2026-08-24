@@ -1,20 +1,19 @@
-import { defaultLocale, isLocale, localePrefix, locales } from '#config/index';
-
+import { defineRouting } from 'next-intl/routing';
 import type { Locale } from '#config/index';
+import { defaultLocale, isLocale, localeCookieName, localePrefix, locales } from '#config/index';
 
-/** Routing values shared with the web application's locale adapter. */
-export type RoutingConfig = {
-  readonly locales: readonly Locale[];
-  readonly defaultLocale: Locale;
-  readonly localePrefix: 'as-needed';
-};
-
-/** Canonical routing configuration; the default locale remains unprefixed. */
-export const routing: RoutingConfig = {
+/** Canonical next-intl routing configuration; the default locale remains unprefixed. */
+export const routing = defineRouting({
   locales,
   defaultLocale,
   localePrefix,
-};
+  localeCookie: {
+    name: localeCookieName,
+  },
+});
+
+/** Routing values shared with the web application's locale adapter. */
+export type RoutingConfig = typeof routing;
 
 /** Reads a supported locale from the first non-empty pathname segment. */
 export function getLocaleFromPathname(pathname: string): Locale | null {

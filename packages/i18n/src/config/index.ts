@@ -1,8 +1,8 @@
-/** Supported locale identifiers for routing and request resolution. */
-export type Locale = 'en' | 'zh-CN';
+/** All locale identifiers accepted by the package, in stable route order. */
+export const locales = ['en', 'zh-CN'] as const;
 
-/** All locale identifiers accepted by the package. */
-export const locales: readonly Locale[] = ['en', 'zh-CN'];
+/** Supported locale identifiers for routing and request resolution. */
+export type Locale = (typeof locales)[number];
 
 /** Locale used when a URL and cookie do not select another supported locale. */
 export const defaultLocale: Locale = 'en';

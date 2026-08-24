@@ -1,3 +1,117 @@
+@import "tailwindcss";
+
+/*
+ * Semantic tokens keep components independent from a particular palette. The iris
+ * accent is intentionally the only saturated family; all supporting surfaces stay
+ * in a quiet neutral range so focus and status states remain easy to distinguish.
+ */
 :root {
-  color-scheme: light dark;
+  --background: oklch(0.985 0.003 285);
+  --foreground: oklch(0.19 0.012 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.012 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.012 285);
+  --primary: oklch(0.46 0.19 286);
+  --primary-foreground: oklch(0.985 0.003 285);
+  --secondary: oklch(0.955 0.006 285);
+  --secondary-foreground: oklch(0.25 0.016 285);
+  --muted: oklch(0.955 0.006 285);
+  --muted-foreground: oklch(0.44 0.018 285);
+  --accent: oklch(0.93 0.035 286);
+  --accent-foreground: oklch(0.31 0.105 286);
+  --destructive: oklch(0.53 0.18 26);
+  --destructive-foreground: oklch(0.985 0.003 285);
+  --border: oklch(0.88 0.012 285);
+  --input: oklch(0.84 0.015 285);
+  --ring: oklch(0.53 0.18 286);
+  --radius: 0.625rem;
+  color-scheme: light;
+}
+
+.dark {
+  --background: oklch(0.16 0.012 285);
+  --foreground: oklch(0.94 0.008 285);
+  --card: oklch(0.2 0.014 285);
+  --card-foreground: oklch(0.94 0.008 285);
+  --popover: oklch(0.2 0.014 285);
+  --popover-foreground: oklch(0.94 0.008 285);
+  --primary: oklch(0.69 0.16 286);
+  --primary-foreground: oklch(0.17 0.028 286);
+  --secondary: oklch(0.27 0.016 285);
+  --secondary-foreground: oklch(0.92 0.008 285);
+  --muted: oklch(0.27 0.016 285);
+  --muted-foreground: oklch(0.72 0.015 285);
+  --accent: oklch(0.31 0.075 286);
+  --accent-foreground: oklch(0.92 0.02 286);
+  --destructive: oklch(0.66 0.17 26);
+  --destructive-foreground: oklch(0.18 0.02 26);
+  --border: oklch(0.33 0.018 285);
+  --input: oklch(0.38 0.018 285);
+  --ring: oklch(0.73 0.15 286);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  min-width: 320px;
+  background-color: var(--background);
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--accent-foreground);
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
 }

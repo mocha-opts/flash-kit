@@ -1,9 +1,10 @@
 import 'server-only';
 
-import { defaultLocale, isLocale } from '#config/index';
-import { getLocaleFromPathname } from '#routing/index';
+export { getLocale, getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 
 import type { Locale } from '#config/index';
+import { defaultLocale, isLocale } from '#config/index';
+import { getLocaleFromPathname } from '#routing/index';
 
 /** Resolves locale in URL, cookie, then default order; this is not an authorization check. */
 export function resolveRequestLocale(pathname: string, cookieLocale?: string): Locale {
@@ -23,13 +24,4 @@ export function resolveRequestLocale(pathname: string, cookieLocale?: string): L
 /** Async server adapter for request locale resolution using the same precedence rules. */
 export async function getRequestLocale(pathname: string, cookieLocale?: string): Promise<Locale> {
   return resolveRequestLocale(pathname, cookieLocale);
-}
-
-/**
- * Placeholder for loading product messages.
- *
- * @throws {Error} Always in T01 because message loading is not configured.
- */
-export async function getTranslations(): Promise<never> {
-  throw new Error('T01-not-configured: product message loading is not configured.');
 }

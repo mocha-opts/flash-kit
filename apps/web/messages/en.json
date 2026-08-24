@@ -1,0 +1,122 @@
+{
+  "metadata": {
+    "title": "Flash Kit — Precision launch console",
+    "description": "A calm, structured launch console for solo makers building the next useful thing.",
+    "privacyTitle": "Privacy — Flash Kit",
+    "termsTitle": "Terms — Flash Kit"
+  },
+  "brand": {
+    "name": "Flash Kit",
+    "tagline": "Precision tools for the moment before launch."
+  },
+  "nav": {
+    "home": "Launch",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "english": "English",
+    "chinese": "Simplified Chinese",
+    "openMenu": "Open navigation",
+    "closeMenu": "Close navigation",
+    "menuTitle": "Navigation",
+    "menuDescription": "Move through the public Flash Kit pages."
+  },
+  "landing": {
+    "eyebrow": "PUBLIC RELEASE / 01",
+    "title": "Ship the first clear version of your product.",
+    "lede": "Flash Kit gives a solo maker a quiet operating surface for the work around a product: identity, payment, email, and language—connected without the noise.",
+    "primaryCta": "Explore the launch rail",
+    "secondaryCta": "Read the terms",
+    "railLabel": "Launch rail",
+    "railIntro": "One structured path from a trusted first touch to a product that is ready to meet people.",
+    "rail": {
+      "auth": {
+        "index": "01",
+        "label": "Auth",
+        "detail": "A clear doorway for the people you invite in."
+      },
+      "billing": {
+        "index": "02",
+        "label": "Billing",
+        "detail": "A deliberate place for value and exchange."
+      },
+      "email": {
+        "index": "03",
+        "label": "Email",
+        "detail": "A human thread that keeps the product close."
+      },
+      "locale": {
+        "index": "04",
+        "label": "Locale",
+        "detail": "A welcome that speaks in the right language."
+      }
+    },
+    "manifestoLabel": "A calm operating brief",
+    "manifestoTitle": "Make the important path feel inevitable.",
+    "manifestoBody": "The public shell stays light on purpose. It gives the product a strong first frame while leaving room for the real work that comes next.",
+    "principles": {
+      "signal": {
+        "label": "Signal",
+        "body": "Put the next useful action in reach."
+      },
+      "structure": {
+        "label": "Structure",
+        "body": "Give every boundary a place and a name."
+      },
+      "care": {
+        "label": "Care",
+        "body": "Make language, contrast, and focus states part of the product."
+      }
+    },
+    "closingLabel": "The first release starts with a clear surface.",
+    "closingBody": "Use the public shell as the steady edge of your product while the deeper systems take shape."
+  },
+  "legal": {
+    "privacy": {
+      "eyebrow": "PUBLIC POLICY / PRIVACY",
+      "title": "Privacy that stays legible.",
+      "description": "How Flash Kit handles information on its public surface.",
+      "effectiveDate": "Effective 25 August 2026 · Version 0.1",
+      "intro": "This starter policy describes the principles for Flash Kit’s public surface. It is intentionally concise and should be expanded with product-specific details before any production data collection begins.",
+      "collectionTitle": "Information we may receive",
+      "collectionBody": "The public pages do not ask for account or payment information. If a future feature collects information, Flash Kit will explain what is needed, why it is needed, and how long it is kept before that feature is used.",
+      "useTitle": "How information is used",
+      "useBody": "Information is used to provide the requested product experience, protect the service, and communicate changes that matter. It is not used to build a hidden profile of your activity.",
+      "sharingTitle": "Sharing and control",
+      "sharingBody": "Flash Kit does not sell personal information. Service providers may process limited information only when they are needed to operate an explicitly requested feature. Questions or requests about personal information should have a clear contact path in the product that collects it.",
+      "changesTitle": "Policy changes",
+      "changesBody": "When this policy changes, the effective date and a plain-language summary will be shown here. Continuing to use a feature after an update means the updated policy applies to that feature."
+    },
+    "terms": {
+      "eyebrow": "PUBLIC POLICY / TERMS",
+      "title": "A small set of useful boundaries.",
+      "description": "The public terms for using the Flash Kit surface.",
+      "effectiveDate": "Effective 25 August 2026 · Version 0.1",
+      "intro": "These starter terms describe the expectations for using the public Flash Kit surface. Product-specific terms, pricing, and agreements belong with the product feature that introduces them.",
+      "useTitle": "Use the surface with care",
+      "useBody": "Use Flash Kit lawfully, respect other people, and do not interfere with the availability or security of the service. The public surface is for understanding the product, not for probing systems or submitting information that does not belong to you.",
+      "contentTitle": "What the surface provides",
+      "contentBody": "The public pages are provided as a changing product introduction. They may be updated, moved, or retired as the product develops. Nothing here promises that a future capability is already available.",
+      "ownershipTitle": "Ownership and feedback",
+      "ownershipBody": "Flash Kit and its original content remain protected by applicable rights. Feedback is welcome when it is shared through an identified product channel; it should not include confidential information that you do not have permission to share.",
+      "changesTitle": "Changes and contact",
+      "changesBody": "If these terms change, the current version and effective date will be shown here. Questions should be directed through the contact route provided by the product."
+    }
+  },
+  "notFound": {
+    "eyebrow": "404 / PATH NOT FOUND",
+    "title": "This route is outside the rail.",
+    "body": "The page may have moved, or this path may not be part of the public release yet.",
+    "back": "Return to launch"
+  },
+  "footer": {
+    "note": "A precision launch console for solo makers.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "© 2026 Flash Kit. Built for the next useful thing."
+  }
+}

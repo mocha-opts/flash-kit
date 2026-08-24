@@ -1,0 +1,122 @@
+{
+  "metadata": {
+    "title": "Flash Kit — 精准发布控制台",
+    "description": "为独立创作者准备的克制、结构化发布控制台，帮助你构建下一个真正有用的产品。",
+    "privacyTitle": "隐私 — Flash Kit",
+    "termsTitle": "条款 — Flash Kit"
+  },
+  "brand": {
+    "name": "Flash Kit",
+    "tagline": "为发布前的关键时刻准备的精准工具。"
+  },
+  "nav": {
+    "home": "发布",
+    "privacy": "隐私",
+    "terms": "条款",
+    "language": "语言",
+    "theme": "主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统",
+    "english": "English",
+    "chinese": "简体中文",
+    "openMenu": "打开导航",
+    "closeMenu": "关闭导航",
+    "menuTitle": "导航",
+    "menuDescription": "浏览 Flash Kit 的公开页面。"
+  },
+  "landing": {
+    "eyebrow": "公开版本 / 01",
+    "title": "发布产品的第一个清晰版本。",
+    "lede": "Flash Kit 为独立创作者提供一块安静的产品工作台：身份、支付、邮件与语言彼此连接，却不制造噪音。",
+    "primaryCta": "查看发布轨道",
+    "secondaryCta": "阅读条款",
+    "railLabel": "发布轨道",
+    "railIntro": "从值得信任的第一次接触，到准备好与用户见面的产品，一条有结构的路径就够了。",
+    "rail": {
+      "auth": {
+        "index": "01",
+        "label": "身份",
+        "detail": "为你邀请的人准备一扇清晰的入口。"
+      },
+      "billing": {
+        "index": "02",
+        "label": "计费",
+        "detail": "为价值与交换留出有分寸的位置。"
+      },
+      "email": {
+        "index": "03",
+        "label": "邮件",
+        "detail": "用一条有人情味的线索，让产品保持靠近。"
+      },
+      "locale": {
+        "index": "04",
+        "label": "语言",
+        "detail": "用正确的语言，给每个人一个合适的欢迎。"
+      }
+    },
+    "manifestoLabel": "一份克制的运行简报",
+    "manifestoTitle": "让重要的路径自然得无可替代。",
+    "manifestoBody": "公共应用壳保持轻盈，是有意为之。它给产品一个坚定的第一画面，也为接下来的真正工作留下空间。",
+    "principles": {
+      "signal": {
+        "label": "信号",
+        "body": "让下一步有用的行动触手可及。"
+      },
+      "structure": {
+        "label": "结构",
+        "body": "为每个边界留出位置，并给它一个名字。"
+      },
+      "care": {
+        "label": "关照",
+        "body": "把语言、对比度与焦点状态都当作产品的一部分。"
+      }
+    },
+    "closingLabel": "第一个版本，从清晰的表面开始。",
+    "closingBody": "让公共应用壳成为产品稳定的边缘，同时让更深的系统逐渐成形。"
+  },
+  "legal": {
+    "privacy": {
+      "eyebrow": "公开政策 / 隐私",
+      "title": "清晰可读的隐私。",
+      "description": "了解 Flash Kit 如何处理公开页面上的信息。",
+      "effectiveDate": "生效日期：2026 年 8 月 25 日 · 版本 0.1",
+      "intro": "这份起步版政策描述了 Flash Kit 公开页面的基本原则。内容刻意保持简洁；在任何生产环境开始收集数据前，应补充具体产品细节。",
+      "collectionTitle": "我们可能收到的信息",
+      "collectionBody": "公开页面不会要求账户或支付信息。如果未来功能需要收集信息，Flash Kit 会在启用功能前说明需要什么、为什么需要，以及会保留多久。",
+      "useTitle": "信息如何使用",
+      "useBody": "信息用于提供你主动请求的产品体验、保护服务安全，以及沟通重要变更。信息不会被用来暗中建立你的活动画像。",
+      "sharingTitle": "共享与控制",
+      "sharingBody": "Flash Kit 不出售个人信息。只有在运行你明确请求的功能确有必要时，服务提供商才可能处理有限的信息。对于个人信息的疑问或请求，应通过收集该信息的产品提供清晰的联系路径。",
+      "changesTitle": "政策变更",
+      "changesBody": "政策发生变化时，这里会展示生效日期和易于理解的摘要。在更新后继续使用某项功能，即表示更新后的政策适用于该功能。"
+    },
+    "terms": {
+      "eyebrow": "公开政策 / 条款",
+      "title": "一组实用而清晰的边界。",
+      "description": "使用 Flash Kit 公开页面时适用的公开条款。",
+      "effectiveDate": "生效日期：2026 年 8 月 25 日 · 版本 0.1",
+      "intro": "这份起步版条款描述了使用 Flash Kit 公开页面时的基本预期。具体产品条款、价格与协议，应随引入它们的产品功能一并提供。",
+      "useTitle": "请善意使用公开页面",
+      "useBody": "请合法使用 Flash Kit，尊重他人，不要干扰服务的可用性或安全性。公开页面用于了解产品，不用于探测系统，也不应提交不属于你的信息。",
+      "contentTitle": "公开页面提供什么",
+      "contentBody": "公开页面是一份会随产品变化的介绍。随着产品发展，它可能被更新、移动或下线。这里没有任何内容代表未来能力已经可用。",
+      "ownershipTitle": "所有权与反馈",
+      "ownershipBody": "Flash Kit 及其原创内容受适用法律保护。如果产品提供明确的反馈渠道，欢迎在那里分享意见；请不要提交你无权分享的机密信息。",
+      "changesTitle": "变更与联系",
+      "changesBody": "条款发生变化时，这里会展示当前版本与生效日期。如有疑问，请通过产品提供的联系路径咨询。"
+    }
+  },
+  "notFound": {
+    "eyebrow": "404 / 找不到路径",
+    "title": "这条路径不在发布轨道上。",
+    "body": "页面可能已经移动，或者这条路径还不属于公开版本。",
+    "back": "返回发布页"
+  },
+  "footer": {
+    "note": "为独立创作者准备的精准发布控制台。",
+    "privacy": "隐私",
+    "terms": "条款",
+    "copyright": "© 2026 Flash Kit。为下一个真正有用的东西而构建。"
+  }
+}

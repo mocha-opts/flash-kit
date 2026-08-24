@@ -5,6 +5,9 @@
   "type": "module",
   "exports": {
     "./button": "./src/components/button.tsx",
+    "./dialog": "./src/components/dialog.tsx",
+    "./dropdown-menu": "./src/components/dropdown-menu.tsx",
+    "./theme": "./src/components/theme.tsx",
     "./utils": "./src/utils/cn.ts",
     "./styles.css": "./src/styles/styles.css"
   },
@@ -15,7 +18,13 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "react": "catalog:"
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "next-themes": "catalog:",
+    "radix-ui": "catalog:",
+    "react": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tailwindcss": "catalog:"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:*",
