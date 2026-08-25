@@ -343,6 +343,75 @@
       "reference": "参考编号：{digest}"
     }
   },
+  "admin": {
+    "navigation": {
+      "label": "管理员导航",
+      "brand": "Flash Kit 管理",
+      "dashboard": "控制台",
+      "users": "用户"
+    },
+    "users": {
+      "eyebrow": "管理 / 用户",
+      "title": "清晰管理账户访问。",
+      "description": "搜索用户、查看账户状态，并处理访问或会话安全问题。",
+      "backToDashboard": "返回控制台",
+      "listTitle": "用户",
+      "listCount": "{count, plural, =0 {没有用户} one {# 位用户} other {# 位用户}}",
+      "filters": {
+        "title": "用户筛选",
+        "searchLabel": "搜索姓名或邮箱",
+        "searchPlaceholder": "搜索用户",
+        "roleLabel": "角色",
+        "statusLabel": "状态",
+        "limitLabel": "每页数量",
+        "apply": "应用筛选",
+        "applying": "应用中……",
+        "hint": "搜索和筛选在服务端执行。",
+        "searchTooLong": "不能超过 100 个字符。"
+      },
+      "roles": {
+        "all": "全部角色",
+        "admin": "管理员",
+        "user": "用户"
+      },
+      "statuses": {
+        "all": "全部状态",
+        "active": "正常",
+        "banned": "已封禁"
+      },
+      "table": {
+        "id": "用户 ID",
+        "createdAt": "创建时间",
+        "banReason": "封禁原因",
+        "banExpires": "封禁到期"
+      },
+      "actions": {
+        "ban": "封禁用户",
+        "unban": "解除封禁",
+        "revokeSessions": "撤销全部会话",
+        "working": "处理中……",
+        "confirmBan": "封禁此用户并撤销其全部当前会话？",
+        "banned": "用户已封禁，会话已撤销。",
+        "unbanned": "用户已解除封禁。",
+        "revoked": "用户的全部会话已撤销。",
+        "requestFailed": "暂时无法更新此用户，请重试。"
+      },
+      "empty": "没有匹配这些筛选条件的用户。",
+      "pagination": {
+        "label": "用户分页",
+        "previous": "上一页",
+        "next": "下一页",
+        "page": "第 {page} 页，共 {totalPages} 页"
+      }
+    },
+    "error": {
+      "eyebrow": "管理 / 错误",
+      "title": "暂时无法加载管理数据。",
+      "description": "管理页面加载失败，请稍后重试。",
+      "retry": "重试",
+      "reference": "参考编号：{digest}"
+    }
+  },
   "dashboard": {
     "eyebrow": "私有区域 / 控制台",
     "title": "从清晰的地方开始。",

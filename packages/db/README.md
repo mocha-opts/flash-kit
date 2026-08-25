@@ -24,7 +24,7 @@ SDKs, and app internals. Auth may depend on DB; DB must never reverse that depen
 | --- | --- | --- |
 | `@repo/db/client` | `src/client/index.ts` | Default/isolated Drizzle clients and transaction helpers. |
 | `@repo/db/schema` | `src/schema/index.ts` | Server-only Better Auth and removable custom schema exports. |
-| `@repo/db/queries/users` | `src/queries/users/index.ts` | User-scoped Better Auth profile/session queries. |
+| `@repo/db/queries/users` | `src/queries/users/index.ts` | User-scoped Better Auth profile/session queries and the explicit Admin user-list query boundary. |
 | `@repo/db/queries/billing` | `src/queries/billing/index.ts` | Reserved billing-query boundary; no concrete T03 queries. |
 | `@repo/db/queries/example` | `src/queries/example/index.ts` | User-scoped Project CRUD queries. |
 | `@repo/db/testing` | `src/testing/index.ts` | Test-only database context boundary. |
@@ -63,6 +63,18 @@ Every runtime export is server-only. The default client is a Node-process single
 by `DATABASE_URL` and `DATABASE_POOL_MAX`, with prepared statements disabled for transaction
 pooler compatibility. User-scoped queries must include a trusted `userId` predicate. DB exposes
 transaction mechanics only; atomic credit and billing workflows belong to `@repo/billing`.
+
+### Admin user listing
+
+`listUsersForAdmin(filters)` is the public Admin user-list query exported from
+`@repo/db/queries/users`. The caller must complete a real Admin authorization check immediately
+before calling it; the DB package does not authorize the caller. It supports bounded offset
+pagination (`limit` 1–100, `offset` >= 0), case-insensitive name/email search, exact Admin/user
+role filters (including comma-separated Better Auth roles), and active/banned status filters. The
+query returns the total count with the page and classifies each role as `admin` or `user`.
+
+Database errors from this query propagate to the caller. Do not replace it with Better Auth's
+`listUsers` API, whose adapter error handling can turn a database failure into an empty result.
 
 ## Removing the Project example manually
 

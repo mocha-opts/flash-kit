@@ -4,7 +4,8 @@
 
 `@repo/auth` owns the Better Auth server/client boundary, validated auth configuration,
 database-backed session helpers, Magic Link and configured Google/GitHub sign-in, explicit account
-linking, the admin role boundary, auth rate limits, and the Profile/Security server capabilities.
+linking, the admin role boundary, safe Admin user/session mutations, auth rate limits, and the
+Profile/Security server capabilities.
 Profile updates target the Better Auth `user` row directly; Session view models omit session tokens.
 
 It does not implement passwords, OTP, MFA, passkeys, organizations, invitations, impersonation,
@@ -23,7 +24,7 @@ and any client export that can reach server configuration, database state, or se
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, safe linked-account summaries, Profile/Session view and mutation helpers, email-change request, session revocation, and safe callback paths. |
+| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, safe linked-account summaries, Profile/Session view and mutation helpers, Admin ban/unban/session revocation, email-change request, session revocation, and safe callback paths. |
 | `@repo/auth/client` | `src/client/index.ts` | Restricted Magic Link, social sign-in, explicit social-link, and unlink request APIs; no raw auth client or provider-token API. |
 | `@repo/auth/config` | `src/config/index.ts` | Server-only validated auth configuration, schema, and enabled OAuth provider contract. |
 | `@repo/auth/components` | `src/components/index.ts` | Client component boundary types; route-specific sign-in and Security UI stays in the Web app. |
@@ -62,6 +63,40 @@ Keep Better Auth composition in `auth.ts`, configuration in `config/`, provider/
 helpers in `internal/`. Export stable capabilities only through declared package subpaths. Auth
 pages and route-specific forms remain in `apps/web/app/[locale]/auth`; the T04 account-linking
 surface is `apps/web/app/[locale]/(app)/settings/security`.
+
+### Explicit Admin bootstrap and revoke
+
+Admin access is never inferred from an email address or domain. Grant or revoke the role only
+through a deliberate, reviewed database operation against an exact user id:
+
+1. Resolve the target id from the authenticated `user` table and review the exact row before changing it.
+2. In a transaction, update only `user.role` for that exact id to `admin` (or `user` to revoke it).
+3. Check the affected-row count is exactly one, then query the same id again and verify the stored role.
+4. Keep the SQL/audit output out of source control and do not run a broad email/domain update.
+
+For example, run the following manually from a protected database session after replacing the
+placeholder id. Do not turn this into an automatic bootstrap script:
+
+```sql
+BEGIN;
+
+SELECT id, email, role
+FROM "user"
+WHERE id = '00000000-0000-0000-0000-000000000000'::uuid
+FOR UPDATE;
+
+-- Confirm the client reports exactly one affected row, then inspect the returned row.
+UPDATE "user"
+SET role = 'admin', updated_at = now()
+WHERE id = '00000000-0000-0000-0000-000000000000'::uuid
+RETURNING id, email, role;
+
+COMMIT;
+```
+
+To revoke the role, repeat the same reviewed flow with `SET role = 'user'`. The Admin UI does not
+grant or revoke roles. Better Auth's installed Admin Plugin handles ban/unban and session
+revocation; in version 1.7.1 `banUser` also deletes all sessions for the target before returning.
 
 ## Security notes
 

@@ -4,6 +4,11 @@ export { auth } from '#auth';
 export { ForbiddenError, UnauthenticatedError } from '#internal/auth-errors';
 export { DEFAULT_AUTH_CALLBACK_PATH, getSafeCallbackPath } from '#internal/safe-callback-path';
 export {
+  banAdminUser,
+  revokeAdminUserSessions,
+  unbanAdminUser,
+} from './admin-users';
+export {
   getLinkedAccountSummaries,
   type LinkedAccountSummary,
 } from './account-linking';
