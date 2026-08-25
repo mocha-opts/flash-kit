@@ -4,7 +4,7 @@ import {
   createDatabaseClient,
   type DatabaseClient,
   type DatabaseConnectionOptions,
-} from '#client/index';
+} from '#db/client/index';
 
 export type DatabaseTestContext = {
   readonly db: DatabaseClient;

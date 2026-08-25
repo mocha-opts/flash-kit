@@ -8,6 +8,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 
 import { authConfig } from '#config/auth-config';
 import { adminPlugin } from '#plugins/admin';
+import { emailChangePlugin } from '#plugins/email-change';
 import { magicLinkPlugin } from '#plugins/magic-link';
 import { authRateLimit } from '#plugins/rate-limit';
 import { socialProviders } from '#plugins/social-providers';
@@ -37,10 +38,11 @@ export const auth = betterAuth({
       updateUserInfoOnLink: false,
     },
   },
-  plugins: [adminPlugin, magicLinkPlugin],
+  plugins: [adminPlugin, magicLinkPlugin, emailChangePlugin],
   session: {
     expiresIn: authConfig.sessionMaxAgeSeconds,
     updateAge: authConfig.sessionUpdateAgeSeconds,
+    freshAge: authConfig.sessionFreshAgeSeconds,
     cookieCache: {
       enabled: false,
     },

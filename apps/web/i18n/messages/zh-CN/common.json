@@ -25,6 +25,19 @@
     "menuTitle": "导航",
     "menuDescription": "浏览 Flash Kit 的公开页面。"
   },
+  "appNav": {
+    "label": "私有应用导航",
+    "brand": "Flash Kit",
+    "dashboard": "控制台",
+    "profile": "个人资料",
+    "security": "安全设置"
+  },
+  "actions": {
+    "unauthenticated": "登录状态已结束，请重新登录。",
+    "recentSession": "此敏感操作需要近期登录，请重新登录后再试。",
+    "forbidden": "你没有执行此操作的权限。",
+    "generic": "暂时无法完成此请求，请稍后再试。"
+  },
   "landing": {
     "eyebrow": "公开版本 / 01",
     "title": "发布产品的第一个清晰版本。",
@@ -145,7 +158,7 @@
     "security": {
       "eyebrow": "设置 / 安全",
       "title": "掌控你的登录方式。",
-      "description": "管理可以用来登录此账户的社交账号。",
+      "description": "查看登录方式、活跃会话与此账户的邮箱地址。",
       "accountLinking": {
         "title": "替代登录方式",
         "description": "只关联你本人控制的账号。服务商资料不会覆盖你的本地账户信息。",
@@ -166,7 +179,78 @@
         "description": "安全设置页面加载失败，请稍后再试。",
         "retry": "重试",
         "reference": "参考编号：{digest}"
+      },
+      "sessions": {
+        "title": "活跃会话",
+        "description": "查看此账户的登录位置，并撤销你不认识的访问。",
+        "current": "当前会话",
+        "device": "设备与浏览器",
+        "ipAddress": "IP 地址",
+        "created": "创建时间",
+        "lastActive": "最近活动",
+        "expires": "到期时间",
+        "unknown": "暂无信息",
+        "revoke": "撤销会话",
+        "revokeLabel": "撤销会话：{device}",
+        "revoking": "正在撤销……",
+        "revoked": "会话已撤销。",
+        "revokeOthers": "撤销其他会话",
+        "revokingOthers": "正在撤销其他会话……",
+        "revokedOthers": "已撤销其他会话：{count} 个。",
+        "noSessions": "没有找到活跃会话。",
+        "requestFailed": "暂时无法更新会话，请稍后再试。",
+        "validation": {
+          "sessionInvalid": "无法选择此会话。"
+        }
+      },
+      "emailChange": {
+        "title": "更换邮箱地址",
+        "description": "请在收件箱验证新地址。我们也会通知你当前的邮箱。",
+        "newEmailLabel": "新邮箱地址",
+        "newEmailHelp": "验证说明会发送到这个地址。",
+        "newEmailPlaceholder": "new@example.com",
+        "submit": "发送验证邮件",
+        "submitting": "正在发送验证邮件……",
+        "success": "验证说明已发送到新邮箱，变更通知也已发送到当前邮箱。",
+        "recentSession": "此敏感操作需要近期登录，请重新登录后再试。",
+        "requestFailed": "暂时无法发起邮箱变更，请稍后再试。",
+        "validation": {
+          "emailInvalid": "请输入有效的邮箱地址。",
+          "callbackInvalid": "无法完成此请求。"
+        }
+      },
+      "emailChangeStatus": {
+        "success": "邮箱地址已更新。其他会话已撤销，当前会话仍保持登录。",
+        "error": "此邮箱变更链接无效或已过期。"
       }
+    }
+  },
+  "profile": {
+    "eyebrow": "设置 / 个人资料",
+    "title": "保持身份信息清晰。",
+    "description": "更新 Flash Kit 工作区中显示的名称。",
+    "avatarLabel": "个人头像",
+    "avatarFallback": "{name} 的个人头像",
+    "detailsTitle": "个人资料详情",
+    "emailLabel": "邮箱地址",
+    "emailReadOnly": "邮箱变更请在安全设置中完成。",
+    "nameLabel": "显示名称",
+    "nameHelp": "使用你希望在工作区中展示的名称。",
+    "namePlaceholder": "你的显示名称",
+    "save": "保存显示名称",
+    "saving": "保存中……",
+    "saved": "显示名称已保存。",
+    "validation": {
+      "nameInvalid": "请输入显示名称。",
+      "nameRequired": "请输入显示名称。",
+      "nameTooLong": "名称不能超过 80 个字符。"
+    },
+    "error": {
+      "eyebrow": "设置 / 个人资料",
+      "title": "暂时无法打开个人资料设置。",
+      "description": "个人资料页面加载失败，请稍后再试。",
+      "retry": "重试",
+      "reference": "参考编号：{digest}"
     }
   },
   "dashboard": {

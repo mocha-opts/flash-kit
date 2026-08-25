@@ -4,16 +4,15 @@
 
 `@repo/auth` owns the Better Auth server/client boundary, validated auth configuration,
 database-backed session helpers, Magic Link and configured Google/GitHub sign-in, explicit account
-linking, the admin role boundary, and auth rate limits. T04 adds social sign-in and the first
-Security surface for managing linked accounts while keeping the UI in its owning Web route.
+linking, the admin role boundary, auth rate limits, and the Profile/Security server capabilities.
+Profile updates target the Better Auth `user` row directly; Session view models omit session tokens.
 
 It does not implement passwords, OTP, MFA, passkeys, organizations, invitations, impersonation,
-session lists/revocation UI, email changes, account deletion, billing integration, profile screens,
-or admin UI in T04.
+account deletion, billing integration, or admin UI.
 
 ## Dependencies
 
-Allowed dependencies: Better Auth, Next.js and React server APIs, Zod, `server-only`,
+Allowed dependencies: Better Auth and its pinned core transaction context, Next.js and React server APIs, Zod, `server-only`,
 `@repo/config`, `@repo/db`, and `@repo/email`. A later billing ticket may depend only on the
 public `@repo/billing/server` integration seam.
 
@@ -24,7 +23,7 @@ and any client export that can reach server configuration, database state, or se
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, safe linked-account summaries, session revocation, and safe callback paths. |
+| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, safe linked-account summaries, Profile/Session view and mutation helpers, email-change request, session revocation, and safe callback paths. |
 | `@repo/auth/client` | `src/client/index.ts` | Restricted Magic Link, social sign-in, explicit social-link, and unlink request APIs; no raw auth client or provider-token API. |
 | `@repo/auth/config` | `src/config/index.ts` | Server-only validated auth configuration, schema, and enabled OAuth provider contract. |
 | `@repo/auth/components` | `src/components/index.ts` | Client component boundary types; route-specific sign-in and Security UI stays in the Web app. |
@@ -75,6 +74,12 @@ account linking is explicit, trusted-provider-only, same-email-only, preserves l
 and refuses to unlink the last account. Server helpers never redirect; pages and actions own that
 policy. Secrets, provider tokens, raw magic URLs, account ids other than local record ids, and
 server runtime objects must never cross a client export.
+
+Email changes use the custom Better Auth endpoint in `plugins/email-change.ts`, not the built-in
+change-email hook: the recent-session request creates a hashed, one-use, expiring verification
+record and awaits both localized messages. Verification consumes the record, updates the email,
+and revokes all sessions except the initiating session in one Better Auth adapter transaction;
+success and failure redirects contain only fixed status flags.
 
 ## Validation command
 

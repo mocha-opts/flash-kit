@@ -9,6 +9,9 @@ catalogs:
     '@better-auth/cli':
       specifier: 1.4.21
       version: 1.4.21
+    '@better-auth/core':
+      specifier: 1.7.1
+      version: 1.7.1
     '@biomejs/biome':
       specifier: 2.5.10
       version: 2.5.10
@@ -57,6 +60,9 @@ catalogs:
     next-intl:
       specifier: 4.13.7
       version: 4.13.7
+    next-safe-action:
+      specifier: 8.6.1
+      version: 8.6.1
     next-themes:
       specifier: 0.4.6
       version: 0.4.6
@@ -183,6 +189,9 @@ importers:
       next-intl:
         specifier: 'catalog:'
         version: 4.13.7(@swc/helpers@0.5.23)(next@16.3.2(@babel/core@7.29.7)(@types/node@24.13.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)(typescript@7.0.2)
+      next-safe-action:
+        specifier: 'catalog:'
+        version: 8.6.1(next@16.3.2(@babel/core@7.29.7)(@types/node@24.13.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react:
         specifier: 'catalog:'
         version: 19.2.8
@@ -223,6 +232,9 @@ importers:
 
   packages/auth:
     dependencies:
+      '@better-auth/core':
+        specifier: 'catalog:'
+        version: 1.7.1(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.4.0(zod@4.4.3))(jose@6.2.10)(kysely@0.29.5)(nanostores@1.5.2)
       '@repo/config':
         specifier: workspace:*
         version: link:../config
@@ -3766,6 +3778,14 @@ packages:
       typescript:
         optional: true
 
+  next-safe-action@8.6.1:
+    resolution: {integrity: sha512-qFkpXnuZ+xEGsKlQi1079B5hy1aNlvb8kJVcEvzFXP1PMm9z5GI5VhfhZCDVLCXkT1rryaFLeUdJGHm1L7ef0Q==}
+    engines: {node: '>=18.17'}
+    peerDependencies:
+      next: '>= 14.0.0'
+      react: '>= 18.2.0'
+      react-dom: '>= 18.2.0'
+
   next-themes@0.4.6:
     resolution: {integrity: sha512-pZvgD5L0IEvX5/9GWyHMf3m8BKiVQwsCMHfoFosXtXBMnaS0ZnIJ9ST4b4NqLVKDEm8QBxoNNGNaBv2JNF6XNA==}
     peerDependencies:
@@ -6968,6 +6988,12 @@ snapshots:
       typescript: 7.0.2
     transitivePeerDependencies:
       - '@swc/helpers'
+
+  next-safe-action@8.6.1(next@16.3.2(@babel/core@7.29.7)(@types/node@24.13.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+    dependencies:
+      next: 16.3.2(@babel/core@7.29.7)(@types/node@24.13.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
 
   next-themes@0.4.6(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:

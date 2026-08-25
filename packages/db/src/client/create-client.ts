@@ -3,7 +3,7 @@ import 'server-only';
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres, { type Sql } from 'postgres';
 
-import * as schema from '#schema/index';
+import * as schema from '#db/schema/index';
 
 export type DatabaseSchema = typeof schema;
 export type DatabaseClient = PostgresJsDatabase<DatabaseSchema>;

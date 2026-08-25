@@ -11,7 +11,10 @@ export const authConfigSchema = z.object({
   basePath: z.literal('/api/auth'),
   sessionMaxAgeSeconds: z.number().int().positive(),
   sessionUpdateAgeSeconds: z.number().int().nonnegative(),
+  /** Recent-session boundary used by sensitive Profile/Security mutations. */
+  sessionFreshAgeSeconds: z.number().int().positive(),
   magicLinkExpiresInSeconds: z.number().int().positive(),
+  emailChangeExpiresInSeconds: z.number().int().positive(),
   rateLimitEnabled: z.boolean(),
   secureCookies: z.boolean(),
   /** Providers whose credentials passed server-env validation and are enabled. */

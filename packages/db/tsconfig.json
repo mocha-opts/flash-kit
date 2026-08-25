@@ -3,7 +3,7 @@
   "extends": "@repo/tsconfig/node-library.json",
   "compilerOptions": {
     "paths": {
-      "#*": ["./src/*"],
+      "#db/*": ["./src/*"],
       "server-only": ["./src/internal/server-only-cli-stub.ts"]
     },
     "noEmit": true

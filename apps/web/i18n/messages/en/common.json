@@ -25,6 +25,19 @@
     "menuTitle": "Navigation",
     "menuDescription": "Move through the public Flash Kit pages."
   },
+  "appNav": {
+    "label": "Private application navigation",
+    "brand": "Flash Kit",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "security": "Security"
+  },
+  "actions": {
+    "unauthenticated": "Your session has ended. Please sign in again.",
+    "recentSession": "For this sensitive change, please sign in again and retry.",
+    "forbidden": "You do not have permission to perform this action.",
+    "generic": "We could not complete this request. Please try again."
+  },
   "landing": {
     "eyebrow": "PUBLIC RELEASE / 01",
     "title": "Ship the first clear version of your product.",
@@ -145,7 +158,7 @@
     "security": {
       "eyebrow": "SETTINGS / SECURITY",
       "title": "Keep your way in under control.",
-      "description": "Manage the social accounts that can be used to sign in to this account.",
+      "description": "Review sign-in methods, active sessions, and the email address for this account.",
       "accountLinking": {
         "title": "Alternative sign-in methods",
         "description": "Link only accounts you control. Provider profile details never replace your local account information.",
@@ -166,7 +179,78 @@
         "description": "We could not load this security page. Please try again.",
         "retry": "Try again",
         "reference": "Reference: {digest}"
+      },
+      "sessions": {
+        "title": "Active sessions",
+        "description": "Review where this account is signed in and revoke access you do not recognize.",
+        "current": "Current session",
+        "device": "Device and browser",
+        "ipAddress": "IP address",
+        "created": "Created",
+        "lastActive": "Last active",
+        "expires": "Expires",
+        "unknown": "Not available",
+        "revoke": "Revoke session",
+        "revokeLabel": "Revoke session: {device}",
+        "revoking": "Revoking...",
+        "revoked": "Session revoked.",
+        "revokeOthers": "Revoke other sessions",
+        "revokingOthers": "Revoking other sessions...",
+        "revokedOthers": "Other sessions revoked: {count}.",
+        "noSessions": "No active sessions were found.",
+        "requestFailed": "We could not update sessions right now. Please try again.",
+        "validation": {
+          "sessionInvalid": "That session could not be selected."
+        }
+      },
+      "emailChange": {
+        "title": "Change email address",
+        "description": "Verify the new address from your inbox. We will also notify your current address.",
+        "newEmailLabel": "New email address",
+        "newEmailHelp": "We will send verification instructions to this address.",
+        "newEmailPlaceholder": "new@example.com",
+        "submit": "Send verification email",
+        "submitting": "Sending verification emails...",
+        "success": "Verification instructions were sent to your new email and a notice was sent to your current email.",
+        "recentSession": "For this sensitive change, please sign in again and retry.",
+        "requestFailed": "We could not start the email change. Please try again.",
+        "validation": {
+          "emailInvalid": "Enter a valid email address.",
+          "callbackInvalid": "This request could not be completed."
+        }
+      },
+      "emailChangeStatus": {
+        "success": "Your email address has been updated. Other sessions have been revoked; this session remains active.",
+        "error": "This email change link is invalid or has expired."
       }
+    }
+  },
+  "profile": {
+    "eyebrow": "SETTINGS / PROFILE",
+    "title": "Keep your identity details clear.",
+    "description": "Update the name shown across your Flash Kit workspace.",
+    "avatarLabel": "Profile avatar",
+    "avatarFallback": "Profile avatar for {name}",
+    "detailsTitle": "Profile details",
+    "emailLabel": "Email address",
+    "emailReadOnly": "Email changes are managed in Security.",
+    "nameLabel": "Display name",
+    "nameHelp": "Use the name you want people to see in your workspace.",
+    "namePlaceholder": "Your display name",
+    "save": "Save display name",
+    "saving": "Saving...",
+    "saved": "Display name saved.",
+    "validation": {
+      "nameInvalid": "Enter a display name.",
+      "nameRequired": "Enter a display name.",
+      "nameTooLong": "Use 80 characters or fewer."
+    },
+    "error": {
+      "eyebrow": "SETTINGS / PROFILE",
+      "title": "Profile settings are unavailable right now.",
+      "description": "We could not load this profile page. Please try again.",
+      "retry": "Try again",
+      "reference": "Reference: {digest}"
     }
   },
   "dashboard": {

@@ -11,7 +11,9 @@ export const authConfig = authConfigSchema.parse({
   basePath: '/api/auth',
   sessionMaxAgeSeconds: 60 * 60 * 24 * 30,
   sessionUpdateAgeSeconds: 60 * 60 * 24,
+  sessionFreshAgeSeconds: 60 * 60 * 24,
   magicLinkExpiresInSeconds: 60 * 10,
+  emailChangeExpiresInSeconds: 60 * 30,
   rateLimitEnabled: !serverEnv.isCi,
   secureCookies: serverEnv.NODE_ENV === 'production',
   enabledOAuthProviders: [

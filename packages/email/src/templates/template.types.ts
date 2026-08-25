@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 /** Stable semantic kinds understood by the email template boundary. */
 export type EmailTemplateKind =
   | 'magic-link'
+  | 'email-change-verification'
   | 'email-change-notice'
   | 'welcome'
   | 'purchase-receipt'

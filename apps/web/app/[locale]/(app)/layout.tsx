@@ -4,6 +4,8 @@ import { getLocalizedPathname } from '@repo/i18n/navigation';
 import { notFound, redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
+import { AppNavigation } from './_components/app-navigation';
+
 type AppLayoutProps = {
   readonly children: ReactNode;
   readonly params: Promise<{ locale: string }>;
@@ -27,5 +29,10 @@ export default async function AppLayout({ children, params }: AppLayoutProps) {
     throw error;
   }
 
-  return <div className="min-h-[calc(100vh-4rem)]">{children}</div>;
+  return (
+    <div className="min-h-[calc(100vh-4rem)]">
+      <AppNavigation locale={requestedLocale} />
+      {children}
+    </div>
+  );
 }
