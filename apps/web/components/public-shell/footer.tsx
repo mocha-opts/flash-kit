@@ -21,6 +21,12 @@ export async function PublicFooter({ locale }: PublicFooterProps) {
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <Link
             className="rounded-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            href="/pricing"
+          >
+            {t('pricing')}
+          </Link>
+          <Link
+            className="rounded-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             href="/privacy"
           >
             {t('privacy')}

@@ -2,6 +2,8 @@
   "metadata": {
     "title": "Flash Kit — 精准发布控制台",
     "description": "为独立创作者准备的克制、结构化发布控制台，帮助你构建下一个真正有用的产品。",
+    "pricingTitle": "价格 — Flash Kit",
+    "pricingDescription": "选择适合当前工作的节奏与使用方式。",
     "privacyTitle": "隐私 — Flash Kit",
     "termsTitle": "条款 — Flash Kit"
   },
@@ -11,6 +13,7 @@
   },
   "nav": {
     "home": "发布",
+    "pricing": "价格",
     "privacy": "隐私",
     "terms": "条款",
     "language": "语言",
@@ -89,6 +92,58 @@
     "closingLabel": "第一个版本，从清晰的表面开始。",
     "closingBody": "让公共应用壳成为产品稳定的边缘，同时让更深的系统逐渐成形。"
   },
+  "pricing": {
+    "eyebrow": "方案 / 价格",
+    "title": "选择下一个有用产品的推进节奏。",
+    "description": "从安静的起点开始，按月保持灵活，或为真正重要的工作做一次长期选择。",
+    "catalogNote": "价格以 USD 展示。支付能力将在结账功能就绪后跟随当前配置的服务商开放。",
+    "tableLabel": "可用方案",
+    "featuresLabel": "包含内容",
+    "limitsLabel": "使用限制",
+    "unlimited": "不限量",
+    "perMonth": "每月",
+    "perYear": "每年",
+    "credits": "{count} 点额度",
+    "recommended": "长期更划算",
+    "startFree": "免费开始",
+    "comingSoon": "即将开放",
+    "plans": {
+      "free": {
+        "name": "免费",
+        "description": "从清晰的基础体验开始，看看这套工作流是否适合你。",
+        "cta": "免费开始"
+      },
+      "pro-monthly": {
+        "name": "专业版（月付）",
+        "description": "保持推进势头，同时不被长期承诺束缚。",
+        "cta": "即将开放"
+      },
+      "pro-yearly": {
+        "name": "专业版（年付）",
+        "description": "用更好的长期价格，换取一整年的专注空间。",
+        "cta": "即将开放"
+      },
+      "lifetime": {
+        "name": "终身版",
+        "description": "一次选择，长期保留一件你愿意放在身边的工具。",
+        "cta": "即将开放"
+      },
+      "credit-pack-100": {
+        "name": "额度包",
+        "description": "需要时补充一份集中用于生成的额度储备。",
+        "cta": "即将开放"
+      }
+    },
+    "features": {
+      "core_workspace": "核心工作区",
+      "advanced_generation": "高级生成",
+      "generation_credits": "生成额度"
+    },
+    "limits": {
+      "projects": "项目数",
+      "generations_per_month": "每月生成次数"
+    }
+  },
   "legal": {
     "privacy": {
       "eyebrow": "公开政策 / 隐私",
@@ -129,6 +184,7 @@
   },
   "footer": {
     "note": "为独立创作者准备的精准发布控制台。",
+    "pricing": "价格",
     "privacy": "隐私",
     "terms": "条款",
     "copyright": "© 2026 Flash Kit。为下一个真正有用的东西而构建。"

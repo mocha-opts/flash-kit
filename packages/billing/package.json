@@ -16,11 +16,14 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@repo/config": "workspace:*",
     "react": "catalog:",
-    "server-only": "catalog:"
+    "server-only": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
     "typescript": "catalog:"
   }

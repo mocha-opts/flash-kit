@@ -2,6 +2,8 @@
   "metadata": {
     "title": "Flash Kit — Precision launch console",
     "description": "A calm, structured launch console for solo makers building the next useful thing.",
+    "pricingTitle": "Pricing — Flash Kit",
+    "pricingDescription": "Choose the pace and permanence that fit the work in front of you.",
     "privacyTitle": "Privacy — Flash Kit",
     "termsTitle": "Terms — Flash Kit"
   },
@@ -11,6 +13,7 @@
   },
   "nav": {
     "home": "Launch",
+    "pricing": "Pricing",
     "privacy": "Privacy",
     "terms": "Terms",
     "language": "Language",
@@ -89,6 +92,58 @@
     "closingLabel": "The first release starts with a clear surface.",
     "closingBody": "Use the public shell as the steady edge of your product while the deeper systems take shape."
   },
+  "pricing": {
+    "eyebrow": "PLANS / PRICING",
+    "title": "Choose the pace of your next useful thing.",
+    "description": "Start with a quiet baseline, stay flexible month to month, or make a one-time commitment to the work that matters.",
+    "catalogNote": "Plans are shown in USD. Payment availability will follow the configured provider when checkout is ready.",
+    "tableLabel": "Available plans",
+    "featuresLabel": "What is included",
+    "limitsLabel": "Usage limits",
+    "unlimited": "Unlimited",
+    "perMonth": "per month",
+    "perYear": "per year",
+    "credits": "{count} credits",
+    "recommended": "Best value",
+    "startFree": "Start free",
+    "comingSoon": "Coming soon",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "description": "A clear place to begin and see whether the workflow fits.",
+        "cta": "Start free"
+      },
+      "pro-monthly": {
+        "name": "Pro monthly",
+        "description": "Room to keep momentum without a long commitment.",
+        "cta": "Coming soon"
+      },
+      "pro-yearly": {
+        "name": "Pro yearly",
+        "description": "The full year of focus, with the better long-term rate.",
+        "cta": "Coming soon"
+      },
+      "lifetime": {
+        "name": "Lifetime",
+        "description": "A one-time choice for a tool you expect to keep close.",
+        "cta": "Coming soon"
+      },
+      "credit-pack-100": {
+        "name": "Credit pack",
+        "description": "Add a focused reserve of generation credits when you need it.",
+        "cta": "Coming soon"
+      }
+    },
+    "features": {
+      "core_workspace": "Core workspace",
+      "advanced_generation": "Advanced generation",
+      "generation_credits": "Generation credits"
+    },
+    "limits": {
+      "projects": "Projects",
+      "generations_per_month": "Generations per month"
+    }
+  },
   "legal": {
     "privacy": {
       "eyebrow": "PUBLIC POLICY / PRIVACY",
@@ -129,6 +184,7 @@
   },
   "footer": {
     "note": "A precision launch console for solo makers.",
+    "pricing": "Pricing",
     "privacy": "Privacy",
     "terms": "Terms",
     "copyright": "© 2026 Flash Kit. Built for the next useful thing."

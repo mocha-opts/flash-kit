@@ -171,6 +171,9 @@ importers:
       '@repo/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@repo/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
       '@repo/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -275,16 +278,25 @@ importers:
 
   packages/billing:
     dependencies:
+      '@repo/config':
+        specifier: workspace:*
+        version: link:../config
       react:
         specifier: 'catalog:'
         version: 19.2.8
       server-only:
         specifier: 'catalog:'
         version: 0.0.1
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
     devDependencies:
       '@repo/tsconfig':
         specifier: workspace:*
         version: link:../../tooling/typescript
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.3
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.18

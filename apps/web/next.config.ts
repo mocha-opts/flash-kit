@@ -9,7 +9,7 @@ const nextConfig = {
     useTypeScriptCli: true,
   },
   productionBrowserSourceMaps: false,
-  transpilePackages: ['@repo/config', '@repo/i18n', '@repo/ui'],
+  transpilePackages: ['@repo/billing', '@repo/config', '@repo/i18n', '@repo/ui'],
 } satisfies NextConfig;
 
 export default withNextIntl(nextConfig);

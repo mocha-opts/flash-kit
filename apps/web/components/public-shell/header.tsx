@@ -43,6 +43,9 @@ export async function PublicHeader({ locale }: PublicHeaderProps) {
           <Link className={buttonVariants({ size: 'sm', variant: 'ghost' })} href="/">
             {t('home')}
           </Link>
+          <Link className={buttonVariants({ size: 'sm', variant: 'ghost' })} href="/pricing">
+            {t('pricing')}
+          </Link>
           <Link className={buttonVariants({ size: 'sm', variant: 'ghost' })} href="/privacy">
             {t('privacy')}
           </Link>
@@ -71,6 +74,7 @@ export async function PublicHeader({ locale }: PublicHeaderProps) {
             description={t('menuDescription')}
             links={[
               { href: '/', label: t('home') },
+              { href: '/pricing', label: t('pricing') },
               { href: '/privacy', label: t('privacy') },
               { href: '/terms', label: t('terms') },
             ]}
