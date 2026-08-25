@@ -2,40 +2,64 @@
 
 ## Responsibility and non-goals
 
-`@repo/auth` owns the future Better Auth server/client boundary, session/user/admin helpers, auth configuration, and auth UI entry points. T01 only creates honest contracts and does not instantiate Better Auth.
+`@repo/auth` owns the Better Auth server/client boundary, validated auth configuration,
+database-backed session helpers, Magic Link sign-in, the admin role boundary, and auth rate limits.
+T03 enables Magic Link as the only sign-in method and keeps the UI in its owning Web route.
 
-It does not implement password auth, OTP, MFA, passkeys, organizations, invitations, impersonation, provider linking, login flows, or billing provider logic in this task.
+It does not implement passwords, OTP, MFA, passkeys, organizations, invitations, impersonation,
+OAuth or explicit account linking, billing integration, profile screens, or admin UI in T03.
 
 ## Dependencies
 
-Allowed dependencies: `server-only`, `react` for component boundaries, `@repo/config`, `@repo/db`, `@repo/email`, and `@repo/billing/server` in later auth implementation work.
+Allowed dependencies: Better Auth, Next.js and React server APIs, Zod, `server-only`,
+`@repo/config`, `@repo/db`, and `@repo/email`. A later billing ticket may depend only on the
+public `@repo/billing/server` integration seam.
 
-Forbidden dependencies: billing provider SDKs, database private paths, app internals, and any client export that can reach server runtime.
+Forbidden dependencies: billing provider SDKs, database or email private paths, app internals,
+and any client export that can reach server configuration, database state, or secrets.
 
 ## Public exports
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/auth/server` | `src/server/index.ts` | Server-only auth/session boundary names. |
-| `@repo/auth/client` | `src/client/index.ts` | Client-only auth client type boundary. |
-| `@repo/auth/config` | `src/config/index.ts` | Auth provider and session config types. |
-| `@repo/auth/components` | `src/components/index.ts` | Client auth component type boundary. |
+| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, session revocation, and safe callback paths. |
+| `@repo/auth/client` | `src/client/index.ts` | Browser auth client and Magic Link request API. |
+| `@repo/auth/config` | `src/config/index.ts` | Server-only validated auth configuration and schema. |
+| `@repo/auth/components` | `src/components/index.ts` | Client component boundary types; concrete shared auth UI is not implemented in T03. |
 
 ## Minimal usage
 
-```ts
-import type { AuthSession } from '@repo/auth/server';
+Server code decides how an unauthenticated request is presented:
 
-type PageSession = AuthSession | null;
+```ts
+import { requireUser } from '@repo/auth/server';
+
+const user = await requireUser();
+```
+
+A client form requests an awaited, single-use Magic Link:
+
+```ts
+import { signInWithMagicLink } from '@repo/auth/client';
+
+await signInWithMagicLink({ email, callbackPath: '/dashboard' });
 ```
 
 ## Placement rules
 
-Keep Better Auth server setup in server-only files. Keep browser hooks and components in client entries. Billing integration must use only `createBetterAuthBillingPlugin()` from `@repo/billing/server`.
+Keep Better Auth composition in `auth.ts`, configuration in `config/`, plugin options in
+`plugins/`, server request helpers in `server/`, browser APIs in `client/`, and non-public
+security helpers in `internal/`. Export stable capabilities only through declared package
+subpaths. Auth pages and route-specific forms remain in `apps/web/app/[locale]/auth`.
 
 ## Security notes
 
-Session helpers must never redirect; pages and actions decide redirects and error conversion. OAuth tokens, cookies, magic links, and provider secrets must never be exposed through client exports.
+Magic Link tokens are hashed at rest, expire after ten minutes, and allow one atomic use.
+Delivery is awaited; mail failures fail the auth request. Sessions use the database with a
+30-day sliding lifetime, request-scoped React caching, secure production cookies, and no
+cross-request cookie session cache. Server helpers never redirect; pages and actions own that
+policy. Secrets, provider tokens, raw magic URLs, and server runtime objects must never cross a
+client export.
 
 ## Validation command
 
@@ -45,4 +69,5 @@ pnpm --filter @repo/auth typecheck
 
 ## Architecture docs
 
-See `docs/architecture/packages.zh-CN.md` and `docs/specs/saas-starter-foundation.md`.
+See `docs/architecture/packages.zh-CN.md`, `docs/architecture/api-and-data.zh-CN.md`, and
+`docs/specs/saas-starter-foundation.md`.

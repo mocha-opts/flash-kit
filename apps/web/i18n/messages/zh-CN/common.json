@@ -118,5 +118,30 @@
     "privacy": "隐私",
     "terms": "条款",
     "copyright": "© 2026 Flash Kit。为下一个真正有用的东西而构建。"
+  },
+  "auth": {
+    "signIn": {
+      "eyebrow": "访问 / 魔法链接",
+      "title": "用一条魔法链接进入。",
+      "description": "输入邮箱，我们会发送一条只能使用一次的登录链接。链接将在十分钟后失效。",
+      "emailLabel": "邮箱地址",
+      "emailPlaceholder": "you@example.com",
+      "invalidEmail": "请输入有效的邮箱地址。",
+      "requestFailed": "暂时无法发送链接，请稍后再试。",
+      "send": "发送魔法链接",
+      "sending": "发送中……"
+    },
+    "checkEmail": {
+      "eyebrow": "请检查收件箱",
+      "title": "登录链接已经发出。",
+      "description": "如果这个地址可以接收链接，邮件很快就会到达。请在当前设备打开链接继续。",
+      "back": "使用其他邮箱"
+    }
+  },
+  "dashboard": {
+    "eyebrow": "私有区域 / 控制台",
+    "title": "从清晰的地方开始。",
+    "welcome": "欢迎，{name}。你的私有工作区已经准备好了。",
+    "signedInAs": "当前登录账号"
   }
 }

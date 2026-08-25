@@ -118,5 +118,30 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "copyright": "© 2026 Flash Kit. Built for the next useful thing."
+  },
+  "auth": {
+    "signIn": {
+      "eyebrow": "ACCESS / MAGIC LINK",
+      "title": "Enter with a magic link.",
+      "description": "Use your email address and we will send a single-use sign-in link. The link expires after ten minutes.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "invalidEmail": "Enter a valid email address.",
+      "requestFailed": "We could not send that link right now. Please try again.",
+      "send": "Send magic link",
+      "sending": "Sending..."
+    },
+    "checkEmail": {
+      "eyebrow": "CHECK YOUR INBOX",
+      "title": "Your sign-in link is on its way.",
+      "description": "If this address can receive a link, it will arrive shortly. Open it on this device to continue.",
+      "back": "Use a different email"
+    }
+  },
+  "dashboard": {
+    "eyebrow": "PRIVATE / DASHBOARD",
+    "title": "A clear place to begin.",
+    "welcome": "Welcome, {name}. Your private workspace is ready.",
+    "signedInAs": "Signed in as"
   }
 }

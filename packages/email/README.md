@@ -2,13 +2,17 @@
 
 ## Responsibility and non-goals
 
-`@repo/email` owns transport-neutral mailer contracts, semantic sender names, and the future email template boundary. T01 intentionally stops before provider SDKs and real templates.
+`@repo/email` owns the transport-neutral mailer contract, Resend and SMTP implementations,
+React Email templates, and semantic sender names. The active provider is selected once per
+deployment by validated server environment variables.
 
-It does not create Resend or SMTP clients, queues, retry systems, email logs, business tables, or product email copy in this task.
+It does not create queues, retries, scheduled jobs, email-log tables, or business data. Provider
+SDKs stay inside private provider folders.
 
 ## Dependencies
 
-Allowed dependencies: `server-only`, `react` for environment-neutral template descriptors, and future mail provider SDKs inside private provider folders.
+Allowed dependencies are the shared config boundary, React Email, Resend, Nodemailer, React,
+Zod, and `server-only`.
 
 Forbidden dependencies: app internals, database tables for email logging, background job libraries, billing provider SDKs outside billing, and browser UI components.
 
@@ -32,11 +36,19 @@ const template: EmailTemplateDescriptor = {
 
 ## Placement rules
 
-Provider implementations belong under private provider folders in a later ticket. Auth, billing, and product senders should remain semantic entry points rather than leaking provider APIs.
+Provider implementations remain private. Business code imports semantic senders from
+`@repo/email/server`; it never imports Resend or Nodemailer. `sendEmail` is the generic extension
+point for later templates.
+
+Magic-link calls accept `email`, `url`, optional `locale` (`en` or `zh-CN`), and optional
+`expiresInMinutes` (10 by default). Delivery is awaited synchronously, and authentication email
+failures always propagate to the caller.
 
 ## Security notes
 
-Server senders must not log full recipients, tokens, HTML bodies, secrets, or raw provider responses. Auth email failures should throw once real sending exists; auxiliary mail must not roll back committed payment facts.
+Server senders do not log full recipients, magic URLs, HTML bodies, secrets, or raw provider
+responses. SMTP authentication is either absent (for local Mailpit) or configured with both user
+and password.
 
 ## Validation command
 

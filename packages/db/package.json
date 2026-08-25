@@ -15,14 +15,22 @@
     "#*": "./src/*.ts"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "auth:generate": "node scripts/auth-generate.mjs",
+    "drizzle:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "drizzle:migrate": "drizzle-kit migrate --config drizzle.config.ts"
   },
   "dependencies": {
+    "@repo/config": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "postgres": "catalog:",
     "server-only": "catalog:"
   },
   "devDependencies": {
+    "@better-auth/cli": "catalog:",
     "@repo/tsconfig": "workspace:*",
     "@types/node": "catalog:",
+    "drizzle-kit": "catalog:",
     "typescript": "catalog:"
   }
 }

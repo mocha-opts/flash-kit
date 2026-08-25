@@ -3,7 +3,7 @@
   "extends": "@repo/tsconfig/react-library.json",
   "compilerOptions": {
     "paths": {
-      "#*": ["./src/*"]
+      "#email/*": ["./src/*"]
     },
     "noEmit": true
   },

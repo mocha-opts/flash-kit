@@ -6,6 +6,7 @@ const enabledFlagSchema = z.enum(['true', 'false']).default('false');
 
 const baseServerEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  CI: enabledFlagSchema,
   NEXT_PUBLIC_APP_NAME: z.string().min(1, 'NEXT_PUBLIC_APP_NAME is required.'),
   NEXT_PUBLIC_SITE_URL: z.string().min(1, 'NEXT_PUBLIC_SITE_URL is required.'),
   DATABASE_URL: z.url({
@@ -100,6 +101,7 @@ export const serverEnvSchema = baseServerEnvSchema
   })
   .transform((value) => ({
     ...value,
+    isCi: value.CI === 'true',
     authGoogleEnabled: value.AUTH_GOOGLE_ENABLED === 'true',
     authGithubEnabled: value.AUTH_GITHUB_ENABLED === 'true',
   }));

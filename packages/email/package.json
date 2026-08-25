@@ -8,18 +8,28 @@
     "./templates": "./src/templates/index.ts"
   },
   "imports": {
-    "#*": "./src/*.ts"
+    "#email/templates/auth/*": "./src/templates/auth/*.tsx",
+    "#email/templates/components/*": "./src/templates/components/*.tsx",
+    "#email/*": "./src/*.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@react-email/components": "catalog:",
+    "@repo/config": "workspace:*",
+    "nodemailer": "catalog:",
     "react": "catalog:",
-    "server-only": "catalog:"
+    "react-dom": "catalog:",
+    "resend": "catalog:",
+    "server-only": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@repo/tsconfig": "workspace:*",
+    "@types/nodemailer": "catalog:",
     "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "typescript": "catalog:"
   }
 }

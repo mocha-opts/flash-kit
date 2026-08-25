@@ -1,0 +1,55 @@
+import 'server-only';
+
+import { serverEnv } from '@repo/config/env/server';
+import { db } from '@repo/db/client';
+import * as schema from '@repo/db/schema';
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+
+import { authConfig } from '#config/auth-config';
+import { adminPlugin } from '#plugins/admin';
+import { magicLinkPlugin } from '#plugins/magic-link';
+import { authRateLimit } from '#plugins/rate-limit';
+
+export const auth = betterAuth({
+  appName: authConfig.appName,
+  baseURL: authConfig.baseURL,
+  basePath: authConfig.basePath,
+  secret: serverEnv.BETTER_AUTH_SECRET,
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema,
+    transaction: true,
+  }),
+  emailAndPassword: {
+    enabled: false,
+  },
+  plugins: [adminPlugin, magicLinkPlugin],
+  session: {
+    expiresIn: authConfig.sessionMaxAgeSeconds,
+    updateAge: authConfig.sessionUpdateAgeSeconds,
+    cookieCache: {
+      enabled: false,
+    },
+  },
+  verification: {
+    storeIdentifier: 'hashed',
+    storeInDatabase: true,
+  },
+  trustedOrigins: [authConfig.baseURL],
+  rateLimit: authRateLimit,
+  advanced: {
+    useSecureCookies: authConfig.secureCookies,
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: authConfig.secureCookies,
+      path: '/',
+    },
+    database: {
+      generateId: 'uuid',
+    },
+  },
+});
+
+export type Auth = typeof auth;
