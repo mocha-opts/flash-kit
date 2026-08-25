@@ -8,6 +8,13 @@
       "when": 1787634845966,
       "tag": "0000_medical_union_jack",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787653430975,
+      "tag": "0001_special_bushwacker",
+      "breakpoints": true
     }
   ]
 }

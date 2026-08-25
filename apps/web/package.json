@@ -13,6 +13,7 @@
     "@hookform/resolvers": "catalog:",
     "@repo/auth": "workspace:*",
     "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
     "@repo/ui": "workspace:*",
     "better-auth": "catalog:",

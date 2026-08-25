@@ -1,6 +1,20 @@
 import 'server-only';
 
-/** Server-only example query boundary marker; concrete query contracts are not in T01. */
-export type ExampleQueriesBoundary = {
-  readonly status: 'example-queries-not-implemented-in-t01';
-};
+export type {
+  CreateProjectForUserInput,
+  ListProjectsForUserInput,
+  ProjectOwnershipInput,
+  ProjectPage,
+  ProjectRecord,
+  ProjectStatusFilter,
+  UpdateProjectForUserInput,
+} from './project.queries';
+export {
+  archiveProjectForUser,
+  createProjectForUser,
+  deleteProjectForUser,
+  findProjectForUser,
+  listProjectsForUser,
+  restoreProjectForUser,
+  updateProjectForUser,
+} from './project.queries';

@@ -29,6 +29,7 @@
     "label": "Private application navigation",
     "brand": "Flash Kit",
     "dashboard": "Dashboard",
+    "projects": "Projects",
     "profile": "Profile",
     "security": "Security"
   },
@@ -249,6 +250,95 @@
       "eyebrow": "SETTINGS / PROFILE",
       "title": "Profile settings are unavailable right now.",
       "description": "We could not load this profile page. Please try again.",
+      "retry": "Try again",
+      "reference": "Reference: {digest}"
+    }
+  },
+  "projects": {
+    "eyebrow": "PRIVATE / PROJECTS",
+    "title": "A small place for focused work.",
+    "description": "Create and manage your own projects with a server-first CRUD pattern.",
+    "createTitle": "Create a project",
+    "createDescription": "Projects are private to your account. You can archive or permanently delete them at any time.",
+    "listTitle": "Your projects",
+    "listCount": "{count, plural, =0 {No projects} one {# project} other {# projects}}",
+    "createdAt": "Created",
+    "noDescription": "No description yet.",
+    "view": "View project",
+    "backToList": "Back to projects",
+    "editTitle": "Edit project",
+    "editDescription": "Keep the project details current. Changes are saved to your account only.",
+    "status": {
+      "all": "All",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "filters": {
+      "label": "Project status",
+      "all": "All",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "empty": {
+      "title": "No projects match this view.",
+      "description": "Create your first project above, or choose another status filter."
+    },
+    "form": {
+      "nameLabel": "Project name",
+      "nameHelp": "Use a short name that is easy to recognize.",
+      "namePlaceholder": "A project name",
+      "descriptionLabel": "Description",
+      "descriptionHelp": "Add useful context for your future self (optional).",
+      "descriptionPlaceholder": "What is this project about?",
+      "create": "Create project",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "created": "Project created.",
+      "saved": "Project saved.",
+      "error": "We could not save this project. Please try again.",
+      "validation": {
+        "nameInvalid": "Enter a project name.",
+        "nameRequired": "Enter a project name.",
+        "nameTooLong": "Use 120 characters or fewer.",
+        "descriptionInvalid": "Enter a valid description.",
+        "descriptionTooLong": "Use 2,000 characters or fewer."
+      }
+    },
+    "lifecycle": {
+      "title": "Project lifecycle",
+      "description": "Archive projects you are not using, or delete one permanently after confirming.",
+      "archive": "Archive project",
+      "restore": "Restore project",
+      "delete": "Delete project",
+      "deleteConfirmTitle": "Delete this project permanently?",
+      "deleteConfirmDescription": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirmDelete": "Yes, delete it",
+      "working": "Working...",
+      "error": "We could not complete that project action. Please try again.",
+      "success": {
+        "archived": "Project archived.",
+        "restored": "Project restored.",
+        "deleted": "Project deleted."
+      }
+    },
+    "pagination": {
+      "label": "Project pages",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page} of {totalPages}"
+    },
+    "notice": {
+      "created": "Project created.",
+      "saved": "Project saved.",
+      "archived": "Project archived.",
+      "restored": "Project restored.",
+      "deleted": "Project deleted."
+    },
+    "error": {
+      "eyebrow": "PRIVATE / PROJECTS",
+      "title": "Projects are unavailable right now.",
+      "description": "We could not load this project page. Please try again.",
       "retry": "Try again",
       "reference": "Reference: {digest}"
     }

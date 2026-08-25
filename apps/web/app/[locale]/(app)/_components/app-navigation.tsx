@@ -30,6 +30,13 @@ export async function AppNavigation({ locale }: AppNavigationProps) {
           </Link>
           <Link
             className="rounded-sm px-1 py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href="/projects"
+            locale={locale}
+          >
+            {t('projects')}
+          </Link>
+          <Link
+            className="rounded-sm px-1 py-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href="/settings/profile"
             locale={locale}
           >
