@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 
 import { defaultLocale, isLocale, locales, type Locale } from '@repo/i18n/config';
 import { I18nProvider } from '@repo/i18n/client';
-import { getTranslations, setRequestLocale } from '@repo/i18n/server';
+import { getMessages, getTranslations, setRequestLocale } from '@repo/i18n/server';
 import { ThemeProvider } from '@repo/ui/theme';
 import '../globals.css';
 
@@ -44,12 +44,15 @@ export default async function LocaleLayout({
   const locale = isLocale(requestedLocale) ? requestedLocale : defaultLocale;
 
   setRequestLocale(locale);
+  const messages = await getMessages();
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <I18nProvider locale={locale}>{children}</I18nProvider>
+          <I18nProvider locale={locale} messages={messages}>
+            {children}
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

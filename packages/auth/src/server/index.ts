@@ -9,3 +9,7 @@ export { getUser } from './get-user';
 export { requireAdmin } from './require-admin';
 export { requireUser } from './require-user';
 export { revokeOtherSessions, revokeSession } from './session-management';
+export {
+  getLinkedAccountSummaries,
+  type LinkedAccountSummary,
+} from './account-linking';

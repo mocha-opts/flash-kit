@@ -1,3 +1,4 @@
+import { authConfig } from '@repo/auth/config';
 import { getSafeCallbackPath } from '@repo/auth/server';
 import { isLocale } from '@repo/i18n/config';
 import { getLocalizedPathname } from '@repo/i18n/navigation';
@@ -24,6 +25,8 @@ export default async function SignInPage({ params, searchParams }: SignInPagePro
     Array.isArray(query.next) ? query.next[0] : query.next,
     fallbackPath,
   );
+  const errorCallbackPath = getLocalizedPathname({ locale, pathname: '/auth/sign-in' });
+  const hasOAuthError = hasQueryValue(query.error) || hasQueryValue(query.oauthError);
   const t = await getTranslations({ locale, namespace: 'auth' });
 
   return (
@@ -44,17 +47,29 @@ export default async function SignInPage({ params, searchParams }: SignInPagePro
         <div className="border-t border-border pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
           <SignInForm
             callbackPath={callbackPath}
+            errorCallbackPath={errorCallbackPath}
+            enabledOAuthProviders={authConfig.enabledOAuthProviders}
+            initialError={hasOAuthError}
             labels={{
               emailLabel: t('signIn.emailLabel'),
               emailPlaceholder: t('signIn.emailPlaceholder'),
               invalidEmail: t('signIn.invalidEmail'),
-              requestFailed: t('signIn.requestFailed'),
+              magicLinkRequestFailed: t('signIn.magicLinkRequestFailed'),
+              oauthRequestFailed: t('signIn.oauthRequestFailed'),
               send: t('signIn.send'),
               sending: t('signIn.sending'),
+              oauthDivider: t('signIn.oauthDivider'),
+              continueWithGoogle: t('signIn.continueWithGoogle'),
+              continueWithGitHub: t('signIn.continueWithGitHub'),
+              oauthStarting: t('signIn.oauthStarting'),
             }}
           />
         </div>
       </section>
     </main>
   );
+}
+
+function hasQueryValue(value: string | string[] | undefined): boolean {
+  return Array.isArray(value) ? value.length > 0 : value !== undefined;
 }

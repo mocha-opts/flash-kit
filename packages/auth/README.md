@@ -3,11 +3,13 @@
 ## Responsibility and non-goals
 
 `@repo/auth` owns the Better Auth server/client boundary, validated auth configuration,
-database-backed session helpers, Magic Link sign-in, the admin role boundary, and auth rate limits.
-T03 enables Magic Link as the only sign-in method and keeps the UI in its owning Web route.
+database-backed session helpers, Magic Link and configured Google/GitHub sign-in, explicit account
+linking, the admin role boundary, and auth rate limits. T04 adds social sign-in and the first
+Security surface for managing linked accounts while keeping the UI in its owning Web route.
 
 It does not implement passwords, OTP, MFA, passkeys, organizations, invitations, impersonation,
-OAuth or explicit account linking, billing integration, profile screens, or admin UI in T03.
+session lists/revocation UI, email changes, account deletion, billing integration, profile screens,
+or admin UI in T04.
 
 ## Dependencies
 
@@ -22,10 +24,10 @@ and any client export that can reach server configuration, database state, or se
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, session revocation, and safe callback paths. |
-| `@repo/auth/client` | `src/client/index.ts` | Browser auth client and Magic Link request API. |
-| `@repo/auth/config` | `src/config/index.ts` | Server-only validated auth configuration and schema. |
-| `@repo/auth/components` | `src/components/index.ts` | Client component boundary types; concrete shared auth UI is not implemented in T03. |
+| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, safe linked-account summaries, session revocation, and safe callback paths. |
+| `@repo/auth/client` | `src/client/index.ts` | Restricted Magic Link, social sign-in, explicit social-link, and unlink request APIs; no raw auth client or provider-token API. |
+| `@repo/auth/config` | `src/config/index.ts` | Server-only validated auth configuration, schema, and enabled OAuth provider contract. |
+| `@repo/auth/components` | `src/components/index.ts` | Client component boundary types; route-specific sign-in and Security UI stays in the Web app. |
 
 ## Minimal usage
 
@@ -45,21 +47,34 @@ import { signInWithMagicLink } from '@repo/auth/client';
 await signInWithMagicLink({ email, callbackPath: '/dashboard' });
 ```
 
+Configured OAuth sign-in and explicit linking use the restricted client operations:
+
+```ts
+import { linkSocialAccount, signInWithSocial } from '@repo/auth/client';
+
+await signInWithSocial({ provider: 'google', callbackPath: '/dashboard' });
+await linkSocialAccount({ provider: 'github', callbackPath: '/settings/security' });
+```
+
 ## Placement rules
 
-Keep Better Auth composition in `auth.ts`, configuration in `config/`, plugin options in
-`plugins/`, server request helpers in `server/`, browser APIs in `client/`, and non-public
-security helpers in `internal/`. Export stable capabilities only through declared package
-subpaths. Auth pages and route-specific forms remain in `apps/web/app/[locale]/auth`.
+Keep Better Auth composition in `auth.ts`, configuration in `config/`, provider/plugin options in
+`plugins/`, server request helpers in `server/`, browser APIs in `client/`, and non-public security
+helpers in `internal/`. Export stable capabilities only through declared package subpaths. Auth
+pages and route-specific forms remain in `apps/web/app/[locale]/auth`; the T04 account-linking
+surface is `apps/web/app/[locale]/(app)/settings/security`.
 
 ## Security notes
 
 Magic Link tokens are hashed at rest, expire after ten minutes, and allow one atomic use.
 Delivery is awaited; mail failures fail the auth request. Sessions use the database with a
 30-day sliding lifetime, request-scoped React caching, secure production cookies, and no
-cross-request cookie session cache. Server helpers never redirect; pages and actions own that
-policy. Secrets, provider tokens, raw magic URLs, and server runtime objects must never cross a
-client export.
+cross-request cookie session cache. OAuth providers are included only when their enabled flag and
+complete server credentials pass validation. Better Auth encrypts OAuth tokens with AES-256-GCM;
+account linking is explicit, trusted-provider-only, same-email-only, preserves local user info,
+and refuses to unlink the last account. Server helpers never redirect; pages and actions own that
+policy. Secrets, provider tokens, raw magic URLs, account ids other than local record ids, and
+server runtime objects must never cross a client export.
 
 ## Validation command
 

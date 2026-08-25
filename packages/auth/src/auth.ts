@@ -10,6 +10,7 @@ import { authConfig } from '#config/auth-config';
 import { adminPlugin } from '#plugins/admin';
 import { magicLinkPlugin } from '#plugins/magic-link';
 import { authRateLimit } from '#plugins/rate-limit';
+import { socialProviders } from '#plugins/social-providers';
 
 export const auth = betterAuth({
   appName: authConfig.appName,
@@ -23,6 +24,18 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: false,
+  },
+  socialProviders,
+  account: {
+    encryptOAuthTokens: true,
+    accountLinking: {
+      enabled: true,
+      disableImplicitLinking: true,
+      trustedProviders: ['google', 'github'],
+      allowDifferentEmails: false,
+      allowUnlinkingAll: false,
+      updateUserInfoOnLink: false,
+    },
   },
   plugins: [adminPlugin, magicLinkPlugin],
   session: {

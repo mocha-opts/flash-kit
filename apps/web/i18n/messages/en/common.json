@@ -121,21 +121,52 @@
   },
   "auth": {
     "signIn": {
-      "eyebrow": "ACCESS / MAGIC LINK",
-      "title": "Enter with a magic link.",
-      "description": "Use your email address and we will send a single-use sign-in link. The link expires after ten minutes.",
+      "eyebrow": "ACCESS / SIGN IN",
+      "title": "A clear way in.",
+      "description": "Continue with a configured social account, or use a single-use magic link sent to your email.",
       "emailLabel": "Email address",
       "emailPlaceholder": "you@example.com",
       "invalidEmail": "Enter a valid email address.",
-      "requestFailed": "We could not send that link right now. Please try again.",
+      "magicLinkRequestFailed": "We could not send that link right now. Please try again.",
+      "oauthRequestFailed": "We could not start that sign-in method right now. Please try again.",
       "send": "Send magic link",
-      "sending": "Sending..."
+      "sending": "Sending...",
+      "oauthDivider": "or continue with email",
+      "continueWithGoogle": "Continue with Google",
+      "continueWithGitHub": "Continue with GitHub",
+      "oauthStarting": "Opening sign-in..."
     },
     "checkEmail": {
       "eyebrow": "CHECK YOUR INBOX",
       "title": "Your sign-in link is on its way.",
       "description": "If this address can receive a link, it will arrive shortly. Open it on this device to continue.",
       "back": "Use a different email"
+    },
+    "security": {
+      "eyebrow": "SETTINGS / SECURITY",
+      "title": "Keep your way in under control.",
+      "description": "Manage the social accounts that can be used to sign in to this account.",
+      "accountLinking": {
+        "title": "Alternative sign-in methods",
+        "description": "Link only accounts you control. Provider profile details never replace your local account information.",
+        "linkedAccount": "{provider} account {number} linked",
+        "link": "Link account",
+        "linkAccount": "Link a {provider} account",
+        "unlink": "Unlink",
+        "unlinkAccount": "Unlink {provider} account {number}",
+        "linking": "Opening link...",
+        "linkingAccount": "Opening {provider} link...",
+        "unlinking": "Unlinking...",
+        "lastAccount": "Keep at least one linked account before unlinking this one.",
+        "requestFailed": "We could not update sign-in methods right now. Please try again."
+      },
+      "error": {
+        "eyebrow": "SETTINGS / SECURITY",
+        "title": "Security settings are unavailable right now.",
+        "description": "We could not load this security page. Please try again.",
+        "retry": "Try again",
+        "reference": "Reference: {digest}"
+      }
     }
   },
   "dashboard": {

@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { appConfig } from '@repo/config/app';
 import { serverEnv } from '@repo/config/env/server';
 
 import { authConfigSchema } from './auth-config.schema';
@@ -13,4 +14,8 @@ export const authConfig = authConfigSchema.parse({
   magicLinkExpiresInSeconds: 60 * 10,
   rateLimitEnabled: !serverEnv.isCi,
   secureCookies: serverEnv.NODE_ENV === 'production',
+  enabledOAuthProviders: [
+    ...(appConfig.oauthProviders.google ? (['google'] as const) : []),
+    ...(appConfig.oauthProviders.github ? (['github'] as const) : []),
+  ],
 });

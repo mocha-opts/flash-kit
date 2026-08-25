@@ -121,21 +121,52 @@
   },
   "auth": {
     "signIn": {
-      "eyebrow": "访问 / 魔法链接",
-      "title": "用一条魔法链接进入。",
-      "description": "输入邮箱，我们会发送一条只能使用一次的登录链接。链接将在十分钟后失效。",
+      "eyebrow": "访问 / 登录",
+      "title": "清晰地进入产品。",
+      "description": "使用已配置的社交账号继续，或通过发送到邮箱的一次性魔法链接登录。",
       "emailLabel": "邮箱地址",
       "emailPlaceholder": "you@example.com",
       "invalidEmail": "请输入有效的邮箱地址。",
-      "requestFailed": "暂时无法发送链接，请稍后再试。",
+      "magicLinkRequestFailed": "暂时无法发送链接，请稍后再试。",
+      "oauthRequestFailed": "暂时无法开始此登录方式，请稍后再试。",
       "send": "发送魔法链接",
-      "sending": "发送中……"
+      "sending": "发送中……",
+      "oauthDivider": "或使用邮箱继续",
+      "continueWithGoogle": "使用 Google 继续",
+      "continueWithGitHub": "使用 GitHub 继续",
+      "oauthStarting": "正在打开登录……"
     },
     "checkEmail": {
       "eyebrow": "请检查收件箱",
       "title": "登录链接已经发出。",
       "description": "如果这个地址可以接收链接，邮件很快就会到达。请在当前设备打开链接继续。",
       "back": "使用其他邮箱"
+    },
+    "security": {
+      "eyebrow": "设置 / 安全",
+      "title": "掌控你的登录方式。",
+      "description": "管理可以用来登录此账户的社交账号。",
+      "accountLinking": {
+        "title": "替代登录方式",
+        "description": "只关联你本人控制的账号。服务商资料不会覆盖你的本地账户信息。",
+        "linkedAccount": "已关联 {provider} 账号 {number}",
+        "link": "关联账号",
+        "linkAccount": "关联 {provider} 账号",
+        "unlink": "解除关联",
+        "unlinkAccount": "解除关联 {provider} 账号 {number}",
+        "linking": "正在打开关联页面……",
+        "linkingAccount": "正在打开 {provider} 关联页面……",
+        "unlinking": "正在解除关联……",
+        "lastAccount": "请至少保留一个关联账号后再解除此账号。",
+        "requestFailed": "暂时无法更新登录方式，请稍后再试。"
+      },
+      "error": {
+        "eyebrow": "设置 / 安全",
+        "title": "暂时无法打开安全设置。",
+        "description": "安全设置页面加载失败，请稍后再试。",
+        "retry": "重试",
+        "reference": "参考编号：{digest}"
+      }
     }
   },
   "dashboard": {
