@@ -34,13 +34,106 @@
     "dashboard": "Dashboard",
     "projects": "Projects",
     "profile": "Profile",
-    "security": "Security"
+    "security": "Security",
+    "billing": "Billing"
   },
   "actions": {
     "unauthenticated": "Your session has ended. Please sign in again.",
     "recentSession": "For this sensitive change, please sign in again and retry.",
     "forbidden": "You do not have permission to perform this action.",
-    "generic": "We could not complete this request. Please try again."
+    "generic": "We could not complete this request. Please try again.",
+    "activeSubscriptionExists": "You already have an active subscription.",
+    "billingEmailVerificationRequired": "Verify your email before starting checkout.",
+    "billingUnavailable": "Billing is temporarily unavailable. Please try again later."
+  },
+  "billing": {
+    "eyebrow": "PRIVATE / BILLING",
+    "title": "Keep the exchange legible.",
+    "description": "Review the plan attached to your account and choose the next billing action with a clear record in view.",
+    "ledgerLabel": "Billing ledger",
+    "ledger": {
+      "activePlan": "Active plan",
+      "subscriptionStatus": "Subscription status",
+      "billingPeriod": "Billing period",
+      "capability": "Provider capability"
+    },
+    "subscription": {
+      "eyebrow": "CURRENT SUBSCRIPTION",
+      "title": "Subscription",
+      "description": "The current provider record for this account. A missing subscription is shown as a clear baseline, never as a failed provider response.",
+      "status": "Status",
+      "interval": "Interval",
+      "period": "Period",
+      "cancelAtPeriodEnd": "Ends after period"
+    },
+    "capabilities": {
+      "eyebrow": "AVAILABLE ACTIONS",
+      "title": "Provider capability",
+      "description": "Actions shown here are the capabilities currently available to this deployment.",
+      "checkout": "Recurring checkout",
+      "customerPortal": "Customer portal",
+      "cancelSubscription": "Cancel subscription",
+      "restoreSubscription": "Restore subscription",
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "summary": "{count} of {total} available"
+    },
+    "plans": {
+      "free": "Free",
+      "proMonthly": "Pro monthly",
+      "proYearly": "Pro yearly",
+      "lifetime": "Lifetime",
+      "creditPack": "Credit pack",
+      "unknown": "Plan unavailable"
+    },
+    "status": {
+      "none": "No subscription",
+      "active": "Active",
+      "trialing": "Trialing",
+      "canceled": "Canceled",
+      "past_due": "Past due",
+      "unknown": "Unknown"
+    },
+    "interval": {
+      "month": "Monthly",
+      "year": "Yearly"
+    },
+    "period": {
+      "none": "No billing period",
+      "unknown": "Period unavailable"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "actions": {
+      "manageTitle": "Choose the next billing action.",
+      "manageDescription": "Checkout and account actions stay tied to your authenticated account. The provider receives only the trusted return path generated on the server.",
+      "checkoutTitle": "Continue with a recurring plan",
+      "checkoutDescription": "Choose a monthly or yearly plan. You will continue on the provider-hosted checkout page.",
+      "checkoutMonthly": "Choose monthly",
+      "checkoutMonthlyPending": "Opening monthly checkout…",
+      "checkoutYearly": "Choose yearly",
+      "checkoutYearlyPending": "Opening yearly checkout…",
+      "portal": "Open billing portal",
+      "portalPending": "Opening billing portal…",
+      "cancel": "Cancel at period end",
+      "cancelPending": "Scheduling cancellation…",
+      "restore": "Restore subscription",
+      "restorePending": "Restoring subscription…",
+      "updated": "Billing details updated.",
+      "actionFailed": "We could not complete this billing action. Please try again."
+    },
+    "unavailable": {
+      "eyebrow": "PRIVATE / BILLING",
+      "title": "Billing is unavailable right now.",
+      "description": "The billing provider did not return a trustworthy account record. No plan or subscription status is being inferred. Please try again later."
+    },
+    "error": {
+      "eyebrow": "PRIVATE / BILLING ERROR",
+      "title": "Billing data could not be loaded.",
+      "description": "We could not load this billing page. Please try again.",
+      "retry": "Try again",
+      "reference": "Reference: {digest}"
+    }
   },
   "landing": {
     "eyebrow": "PUBLIC RELEASE / 01",

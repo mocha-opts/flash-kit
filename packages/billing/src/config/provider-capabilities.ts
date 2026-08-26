@@ -7,16 +7,17 @@ type BillingCatalogIdRequirements = {
 
 /**
  * Provider capabilities and catalog requirements are centralized here while the
- * latter remain an internal validation concern. Pricing UI must consume the
- * catalog and never branch on provider names. Checkout capabilities remain
- * false until a later ticket wires the provider SDKs and server actions.
+ * latter remain an internal validation concern. Stripe T09 enables checkout and
+ * subscription lifecycle operations; Polar remains disabled until its provider
+ * integration ticket. Pricing UI and settings pages consume this contract and
+ * never branch on provider names.
  */
 export const billingProviderCapabilities = {
   stripe: {
-    checkout: false,
-    customerPortal: false,
-    cancelSubscription: false,
-    restoreSubscription: false,
+    checkout: true,
+    customerPortal: true,
+    cancelSubscription: true,
+    restoreSubscription: true,
   },
   polar: {
     checkout: false,

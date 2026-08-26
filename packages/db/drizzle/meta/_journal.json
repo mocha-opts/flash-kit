@@ -15,6 +15,13 @@
       "when": 1787653430975,
       "tag": "0001_special_bushwacker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787673768402,
+      "tag": "0002_yellow_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

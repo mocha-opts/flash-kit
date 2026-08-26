@@ -34,13 +34,106 @@
     "dashboard": "控制台",
     "projects": "项目",
     "profile": "个人资料",
-    "security": "安全设置"
+    "security": "安全设置",
+    "billing": "计费"
   },
   "actions": {
     "unauthenticated": "登录状态已结束，请重新登录。",
     "recentSession": "此敏感操作需要近期登录，请重新登录后再试。",
     "forbidden": "你没有执行此操作的权限。",
-    "generic": "暂时无法完成此请求，请稍后再试。"
+    "generic": "暂时无法完成此请求，请稍后再试。",
+    "activeSubscriptionExists": "你的账户已经有一个有效订阅。",
+    "billingEmailVerificationRequired": "开始结账前，请先验证邮箱。",
+    "billingUnavailable": "计费服务暂时不可用，请稍后再试。"
+  },
+  "billing": {
+    "eyebrow": "私有区域 / 计费",
+    "title": "让每一次交换都清晰可见。",
+    "description": "查看账户当前方案，并在完整记录可见的情况下选择下一步计费操作。",
+    "ledgerLabel": "计费台账",
+    "ledger": {
+      "activePlan": "当前方案",
+      "subscriptionStatus": "订阅状态",
+      "billingPeriod": "计费周期",
+      "capability": "服务能力"
+    },
+    "subscription": {
+      "eyebrow": "当前订阅",
+      "title": "订阅",
+      "description": "这是账户当前对应的服务商记录。没有订阅时会明确显示基础状态，不会把服务商故障误判为免费方案。",
+      "status": "状态",
+      "interval": "周期",
+      "period": "计费区间",
+      "cancelAtPeriodEnd": "周期结束后停止"
+    },
+    "capabilities": {
+      "eyebrow": "可用操作",
+      "title": "服务能力",
+      "description": "这里显示当前部署实际提供的计费能力。",
+      "checkout": "周期性结账",
+      "customerPortal": "客户门户",
+      "cancelSubscription": "取消订阅",
+      "restoreSubscription": "恢复订阅",
+      "available": "可用",
+      "unavailable": "不可用",
+      "summary": "{count} / {total} 项可用"
+    },
+    "plans": {
+      "free": "免费",
+      "proMonthly": "专业版（月付）",
+      "proYearly": "专业版（年付）",
+      "lifetime": "终身版",
+      "creditPack": "额度包",
+      "unknown": "方案不可用"
+    },
+    "status": {
+      "none": "没有订阅",
+      "active": "有效",
+      "trialing": "试用中",
+      "canceled": "已取消",
+      "past_due": "逾期",
+      "unknown": "未知"
+    },
+    "interval": {
+      "month": "每月",
+      "year": "每年"
+    },
+    "period": {
+      "none": "没有计费周期",
+      "unknown": "周期不可用"
+    },
+    "yes": "是",
+    "no": "否",
+    "actions": {
+      "manageTitle": "选择下一步计费操作。",
+      "manageDescription": "结账和账户操作都绑定当前登录账户。服务商只会收到由服务端生成的可信返回路径。",
+      "checkoutTitle": "选择周期性方案",
+      "checkoutDescription": "选择月付或年付，随后会进入服务商托管的结账页面。",
+      "checkoutMonthly": "选择月付",
+      "checkoutMonthlyPending": "正在打开月付结账……",
+      "checkoutYearly": "选择年付",
+      "checkoutYearlyPending": "正在打开年付结账……",
+      "portal": "打开计费门户",
+      "portalPending": "正在打开计费门户……",
+      "cancel": "周期结束后取消",
+      "cancelPending": "正在安排取消……",
+      "restore": "恢复订阅",
+      "restorePending": "正在恢复订阅……",
+      "updated": "计费信息已更新。",
+      "actionFailed": "暂时无法完成此计费操作，请重试。"
+    },
+    "unavailable": {
+      "eyebrow": "私有区域 / 计费",
+      "title": "计费暂时不可用。",
+      "description": "服务商没有返回可信的账户记录，因此不会推断方案或订阅状态。请稍后再试。"
+    },
+    "error": {
+      "eyebrow": "私有区域 / 计费错误",
+      "title": "无法加载计费数据。",
+      "description": "计费页面加载失败，请稍后重试。",
+      "retry": "重试",
+      "reference": "参考编号：{digest}"
+    }
   },
   "landing": {
     "eyebrow": "公开版本 / 01",

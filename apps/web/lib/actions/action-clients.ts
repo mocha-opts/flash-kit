@@ -22,7 +22,14 @@ export type AuthenticatedActionContext = {
   readonly user: AuthUser;
 };
 
-type SafeErrorKind = 'forbidden' | 'generic' | 'recentSession' | 'unauthenticated';
+type SafeErrorKind =
+  | 'activeSubscriptionExists'
+  | 'billingEmailVerificationRequired'
+  | 'billingUnavailable'
+  | 'forbidden'
+  | 'generic'
+  | 'recentSession'
+  | 'unauthenticated';
 
 const publicClient = createSafeActionClient<'flattened', ActionServerError>({
   defaultValidationErrorsShape: 'flattened',
@@ -69,13 +76,22 @@ export const adminAction = authenticatedAction.use(async ({ next }) => {
 });
 
 /** Resolves an action error from localized server messages without exposing raw failures. */
-export async function getSafeActionError(kind: SafeErrorKind): Promise<ActionServerError> {
-  const locale = await getCurrentLocale();
+export async function getSafeActionError(
+  kind: SafeErrorKind,
+  requestedLocale?: Locale,
+): Promise<ActionServerError> {
+  const locale = requestedLocale ?? (await getCurrentLocale());
   const translations = await getTranslations({ locale, namespace: 'actions' });
 
   // No provider, database, or Better Auth error text crosses the action boundary.
   const message = (() => {
     switch (kind) {
+      case 'activeSubscriptionExists':
+        return translations('activeSubscriptionExists');
+      case 'billingEmailVerificationRequired':
+        return translations('billingEmailVerificationRequired');
+      case 'billingUnavailable':
+        return translations('billingUnavailable');
       case 'unauthenticated':
         return translations('unauthenticated');
       case 'recentSession':

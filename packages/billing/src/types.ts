@@ -93,6 +93,42 @@ export type ActivePlan = {
   readonly source: 'free' | 'subscription' | 'lifetime';
 };
 
+/** Supported URL locales accepted by billing redirects. */
+export type BillingLocale = 'en' | 'zh-CN';
+
+/** Input for a checkout request; the user id must come from an authenticated server context. */
+export type CreateCheckoutInput = {
+  readonly userId: string;
+  readonly planId: string;
+  readonly locale?: BillingLocale;
+};
+
+/** Stable checkout result; provider response objects never cross this boundary. */
+export type CheckoutResult = {
+  readonly url: string;
+};
+
+/** Input for a customer portal request. */
+export type CreatePortalInput = {
+  readonly userId: string;
+  readonly locale?: BillingLocale;
+};
+
+/** Stable customer portal result; provider response objects never cross this boundary. */
+export type PortalResult = {
+  readonly url: string;
+};
+
+/** User-scoped input shared by subscription reads and mutations. */
+export type UserBillingInput = {
+  readonly userId: string;
+};
+
+/** User-scoped subscription mutation; an omitted id targets the user's active subscription. */
+export type SubscriptionMutationInput = UserBillingInput & {
+  readonly subscriptionId?: string;
+};
+
 /** Current credit balance scoped to the user identified by `userId`. */
 export type CreditBalance = {
   readonly userId: string;
@@ -106,14 +142,68 @@ export type CreditTransactionView = {
   readonly description: string;
 };
 
+/** Query shape for the stable, user-scoped credit read boundary. */
+export type CreditTransactionsInput = UserBillingInput & {
+  readonly page?: number;
+  readonly limit?: number;
+};
+
+/** Input shape reserved for the later atomic credit-consumption workflow. */
+export type ConsumeCreditsInput = UserBillingInput & {
+  readonly amount: number;
+  readonly description: string;
+  readonly referenceType: string;
+  readonly referenceId: string;
+};
+
 /** Provider-neutral subscription status normalized for application use. */
 export type BillingSubscription = {
+  readonly id: string;
   readonly provider: BillingProvider;
+  readonly planId: string;
   readonly status: 'active' | 'trialing' | 'canceled' | 'past_due' | 'unknown';
+  readonly interval?: 'month' | 'year' | undefined;
+  readonly periodStart?: string | undefined;
+  readonly periodEnd?: string | undefined;
+  readonly cancelAtPeriodEnd: boolean;
 };
+
+/** Explicit provider/API failure; callers must render Billing unavailable, never Free. */
+export class BillingUnavailableError extends Error {
+  override readonly name = 'BillingUnavailableError';
+
+  constructor(message = 'The billing provider is currently unavailable.') {
+    super(message);
+  }
+}
+
+/** Checkout requires a user whose email has already been verified. */
+export class BillingEmailVerificationRequiredError extends Error {
+  override readonly name = 'BillingEmailVerificationRequiredError';
+
+  constructor(message = 'Email verification is required before starting a subscription.') {
+    super(message);
+  }
+}
+
+/** Prevents a second checkout while the same customer already has a subscription. */
+export class ActiveSubscriptionExistsError extends Error {
+  override readonly name = 'ActiveSubscriptionExistsError';
+
+  constructor(message = 'The user already has an active or trialing subscription.') {
+    super(message);
+  }
+}
 
 /** Minimal server billing client boundary; provider SDK clients stay private. */
 export type BillingClient = {
   readonly provider: BillingProvider;
   readonly capabilities: BillingCapabilities;
+  createCheckout(input: CreateCheckoutInput): Promise<CheckoutResult>;
+  createPortal(input: CreatePortalInput): Promise<PortalResult>;
+  listSubscriptions(input: UserBillingInput): Promise<readonly BillingSubscription[]>;
+  cancelSubscription(input: SubscriptionMutationInput): Promise<void>;
+  restoreSubscription(input: SubscriptionMutationInput): Promise<void>;
+  getActivePlan(input: UserBillingInput): Promise<ActivePlan>;
+  hasFeature(input: { readonly userId: string; readonly feature: string }): Promise<boolean>;
 };

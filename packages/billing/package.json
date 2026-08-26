@@ -10,15 +10,20 @@
     "./components": "./src/components.ts"
   },
   "imports": {
+    "#billing-config/*": "./src/config/*.ts",
     "#*": "./src/*.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@better-auth/core": "catalog:",
+    "@better-auth/stripe": "catalog:",
     "@repo/config": "workspace:*",
+    "@repo/db": "workspace:*",
     "react": "catalog:",
     "server-only": "catalog:",
+    "stripe": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

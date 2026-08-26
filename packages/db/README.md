@@ -25,7 +25,7 @@ SDKs, and app internals. Auth may depend on DB; DB must never reverse that depen
 | `@repo/db/client` | `src/client/index.ts` | Default/isolated Drizzle clients and transaction helpers. |
 | `@repo/db/schema` | `src/schema/index.ts` | Server-only Better Auth and removable custom schema exports. |
 | `@repo/db/queries/users` | `src/queries/users/index.ts` | User-scoped Better Auth profile/session queries and the explicit Admin user-list query boundary. |
-| `@repo/db/queries/billing` | `src/queries/billing/index.ts` | Reserved billing-query boundary; no concrete T03 queries. |
+| `@repo/db/queries/billing` | `src/queries/billing/index.ts` | Minimal Billing identity and Stripe customer-id query boundary; no Billing workflow. |
 | `@repo/db/queries/example` | `src/queries/example/index.ts` | User-scoped Project CRUD queries. |
 | `@repo/db/testing` | `src/testing/index.ts` | Test-only database context boundary. |
 
@@ -63,6 +63,14 @@ Every runtime export is server-only. The default client is a Node-process single
 by `DATABASE_URL` and `DATABASE_POOL_MAX`, with prepared statements disabled for transaction
 pooler compatibility. User-scoped queries must include a trusted `userId` predicate. DB exposes
 transaction mechanics only; atomic credit and billing workflows belong to `@repo/billing`.
+
+### Billing identity query boundary
+
+`@repo/db/queries/billing` exposes only the minimum user-scoped identity fields required by the
+Billing adapter (`id`, `name`, `email`, verification state, and the persisted Stripe customer id),
+plus an atomic conditional write for an empty customer-id slot. It does not create customers,
+start checkout, read Provider subscriptions, process webhooks, or own any Billing workflow; those
+responsibilities remain inside `@repo/billing`.
 
 ### Admin user listing
 

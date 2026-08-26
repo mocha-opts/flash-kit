@@ -17,6 +17,16 @@ Object.assign(process.env, {
   BILLING_PROVIDER: process.env.BILLING_PROVIDER ?? 'stripe',
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? 'sk_test_schema_generation',
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ?? 'whsec_schema_generation',
+  STRIPE_PRODUCT_PRO_MONTHLY: process.env.STRIPE_PRODUCT_PRO_MONTHLY ?? 'prod_schema_pro_monthly',
+  STRIPE_PRICE_PRO_MONTHLY: process.env.STRIPE_PRICE_PRO_MONTHLY ?? 'price_schema_pro_monthly',
+  STRIPE_PRODUCT_PRO_YEARLY: process.env.STRIPE_PRODUCT_PRO_YEARLY ?? 'prod_schema_pro_yearly',
+  STRIPE_PRICE_PRO_YEARLY: process.env.STRIPE_PRICE_PRO_YEARLY ?? 'price_schema_pro_yearly',
+  STRIPE_PRODUCT_LIFETIME: process.env.STRIPE_PRODUCT_LIFETIME ?? 'prod_schema_lifetime',
+  STRIPE_PRICE_LIFETIME: process.env.STRIPE_PRICE_LIFETIME ?? 'price_schema_lifetime',
+  STRIPE_PRODUCT_CREDIT_PACK_100:
+    process.env.STRIPE_PRODUCT_CREDIT_PACK_100 ?? 'prod_schema_credit_pack_100',
+  STRIPE_PRICE_CREDIT_PACK_100:
+    process.env.STRIPE_PRICE_CREDIT_PACK_100 ?? 'price_schema_credit_pack_100',
   MAILER_PROVIDER: process.env.MAILER_PROVIDER ?? 'smtp',
   EMAIL_FROM: process.env.EMAIL_FROM ?? 'noreply@example.com',
   SMTP_HOST: process.env.SMTP_HOST ?? 'localhost',

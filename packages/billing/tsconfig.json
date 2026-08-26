@@ -3,6 +3,7 @@
   "extends": "@repo/tsconfig/react-library.json",
   "compilerOptions": {
     "paths": {
+      "#billing-config/*": ["./src/config/*"],
       "#*": ["./src/*"]
     },
     "types": ["node"],

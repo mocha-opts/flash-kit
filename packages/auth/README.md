@@ -9,13 +9,14 @@ Profile/Security server capabilities.
 Profile updates target the Better Auth `user` row directly; Session view models omit session tokens.
 
 It does not implement passwords, OTP, MFA, passkeys, organizations, invitations, impersonation,
-account deletion, billing integration, or admin UI.
+account deletion, billing workflows, provider SDKs, or admin UI. Its only Billing integration is
+installing the official Better Auth plugin returned by the public `@repo/billing/server` seam.
 
 ## Dependencies
 
 Allowed dependencies: Better Auth and its pinned core transaction context, Next.js and React server APIs, Zod, `server-only`,
-`@repo/config`, `@repo/db`, and `@repo/email`. A later billing ticket may depend only on the
-public `@repo/billing/server` integration seam.
+`@repo/config`, `@repo/db`, `@repo/email`, and `@repo/billing` (server-only, through
+`@repo/billing/server` for the official plugin seam).
 
 Forbidden dependencies: billing provider SDKs, database or email private paths, app internals,
 and any client export that can reach server configuration, database state, or secrets.

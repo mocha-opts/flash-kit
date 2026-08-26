@@ -5,9 +5,9 @@ import { db } from '@repo/db/client';
 import * as schema from '@repo/db/schema';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-
 import { authConfig } from '#config/auth-config';
 import { adminPlugin } from '#plugins/admin';
+import { billingPlugin } from '#plugins/billing';
 import { emailChangePlugin } from '#plugins/email-change';
 import { magicLinkPlugin } from '#plugins/magic-link';
 import { authRateLimit } from '#plugins/rate-limit';
@@ -38,7 +38,12 @@ export const auth = betterAuth({
       updateUserInfoOnLink: false,
     },
   },
-  plugins: [adminPlugin, magicLinkPlugin, emailChangePlugin],
+  plugins: [
+    adminPlugin,
+    magicLinkPlugin,
+    emailChangePlugin,
+    ...(billingPlugin ? [billingPlugin] : []),
+  ],
   session: {
     expiresIn: authConfig.sessionMaxAgeSeconds,
     updateAge: authConfig.sessionUpdateAgeSeconds,

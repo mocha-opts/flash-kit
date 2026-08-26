@@ -1,75 +1,63 @@
 import 'server-only';
 
-import { serverEnv } from '@repo/config/env/server';
-import type { ActivePlan, BillingClient, CreditBalance, CreditTransactionView } from '#types';
-import { getBillingProviderCapabilities } from './config/provider-capabilities';
+import type { BetterAuthPlugin } from '@better-auth/core';
+
+import { createBillingPlugin } from '#better-auth/create-billing-plugin';
+import { createBillingClient } from '#billing/create-billing-client';
+import type {
+  ActivePlan,
+  BillingClient,
+  ConsumeCreditsInput,
+  CreditBalance,
+  CreditTransactionsInput,
+  CreditTransactionView,
+} from '#types';
 
 /**
- * Returns the configured provider-neutral billing client.
- *
- * Checkout and lifecycle operations remain unavailable until their provider
- * integrations are delivered in later tickets; this boundary still exposes the
- * deployment-selected provider and its centralized capability contract.
+ * The only Auth integration seam. The returned official plugin owns the
+ * signed Better Auth webhook and generated subscription schema.
  */
+export function createBetterAuthBillingPlugin(): BetterAuthPlugin | undefined {
+  return createBillingPlugin();
+}
+
+/** Returns the selected deployment's provider-neutral billing client. */
 export function getBilling(): BillingClient {
-  const provider = serverEnv.BILLING_PROVIDER;
+  return createBillingClient();
+}
 
-  return {
-    provider,
-    capabilities: getBillingProviderCapabilities(provider),
-  };
+/** Resolves the current user's active plan through the selected BillingClient. */
+export async function getActivePlan(input: { readonly userId: string }): Promise<ActivePlan> {
+  return await createBillingClient().getActivePlan(input);
+}
+
+/** Provider-neutral feature check; provider failures are never treated as Free. */
+export async function hasFeature(input: {
+  readonly userId: string;
+  readonly feature: string;
+}): Promise<boolean> {
+  return await createBillingClient().hasFeature(input);
 }
 
 /**
- * Placeholder for the Better Auth billing plugin boundary.
- *
- * @throws {Error} Until a later ticket wires the selected provider integration.
+ * Stable credit read boundary. The credit ledger is intentionally owned by a
+ * later billing ticket; keep this export available without pretending T09
+ * implements accounting.
  */
-export function createBetterAuthBillingPlugin(): never {
-  throw new Error('T01-not-configured: billing providers are not configured.');
+export async function getCreditBalance(_input: {
+  readonly userId: string;
+}): Promise<CreditBalance> {
+  throw new Error('Credit operations are not implemented until a later billing ticket.');
 }
 
-/**
- * Resolves the current user's active plan without exposing provider response types.
- *
- * @throws {Error} Until a later ticket wires the selected provider integration.
- */
-export async function getActivePlan(): Promise<ActivePlan> {
-  throw new Error('T01-not-configured: billing providers are not configured.');
+/** Stable credit history boundary reserved for a later billing ticket. */
+export async function listCreditTransactions(
+  _input: CreditTransactionsInput,
+): Promise<readonly CreditTransactionView[]> {
+  throw new Error('Credit operations are not implemented until a later billing ticket.');
 }
 
-/**
- * Reads the current user's credit balance.
- *
- * @throws {Error} Until a later ticket wires the selected provider integration.
- */
-export async function getCreditBalance(): Promise<CreditBalance> {
-  throw new Error('T01-not-configured: billing providers are not configured.');
-}
-
-/**
- * Lists the current user's credit history as a provider-neutral view.
- *
- * @throws {Error} Until a later ticket wires the selected provider integration.
- */
-export async function listCreditTransactions(): Promise<readonly CreditTransactionView[]> {
-  throw new Error('T01-not-configured: billing providers are not configured.');
-}
-
-/**
- * Placeholder for an atomic credit workflow; it must not be implemented in the database package.
- *
- * @throws {Error} Until a later ticket wires the selected provider integration.
- */
-export async function consumeCredits(): Promise<never> {
-  throw new Error('T01-not-configured: billing providers are not configured.');
-}
-
-/**
- * Placeholder for a provider-neutral feature access check.
- *
- * @throws {Error} Until a later ticket wires the selected provider integration.
- */
-export function hasFeature(): never {
-  throw new Error('T01-not-configured: billing providers are not configured.');
+/** Stable atomic credit-consumption boundary reserved for a later billing ticket. */
+export async function consumeCredits(_input: ConsumeCreditsInput): Promise<never> {
+  throw new Error('Credit operations are not implemented until a later billing ticket.');
 }
