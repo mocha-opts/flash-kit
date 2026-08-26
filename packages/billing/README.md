@@ -4,24 +4,32 @@
 
 `@repo/billing` owns the provider-neutral billing boundary, the product Catalog,
 capability declarations, reusable pricing display components, and the private
-Stripe subscription adapter. Stripe checkout, customer portal, subscription
-reads/cancellation/restoration, and the official Better Auth Stripe plugin are
-implemented here for the selected Stripe deployment. Polar remains an explicit
-unavailable provider until its own ticket.
+Stripe and Polar subscription adapters. The selected deployment gets checkout,
+customer portal, subscription reads/cancellation/restoration, and its official
+Better Auth plugin; the unselected provider is never initialized.
+
+For Polar, the Better Auth plugin is intentionally limited to customer lifecycle,
+portal, and signed webhook integration. It does not install the official
+`checkout()` endpoint; application checkout always goes through the
+provider-neutral `BillingClient.createCheckout`, which enforces Catalog Product
+IDs and the active-subscription guard.
 
 It does not depend on `@repo/auth`, does not export provider SDKs or raw plugin
 responses, and does not add custom customer, product, price, subscription,
 feature-access, or credit tables. The official Better Auth plugin is the source
-of the generated `user.stripeCustomerId` column and `subscription` table in the
-database schema; Billing consumes those records through its public DB query
-boundary.
+of the generated Stripe `user.stripeCustomerId` column and `subscription` table
+in the database schema; the Polar plugin declares no billing tables and links
+customers through Better Auth user ids as external customer ids.
 
 ## Dependencies
 
 Allowed dependencies: `server-only`, `react`, `zod`, `@repo/config`,
-`@repo/db`, `@better-auth/core`, `@better-auth/stripe`, `stripe`, and the shared UI package.
+`@repo/db`, `@better-auth/core`, `@better-auth/stripe`, `@polar-sh/better-auth`,
+`@polar-sh/sdk`, `stripe`, and the shared UI package.
 
-Forbidden dependencies: `@repo/auth`, app internals, provider SDK exports, webhook hook exports, and deep imports from other workspace packages.
+Forbidden dependencies: `@repo/auth`, app internals, provider SDK exports, webhook
+hook exports, and deep imports from other workspace packages. Provider SDKs are
+implementation-only dependencies and are never re-exported.
 
 ## Public exports
 
@@ -61,14 +69,15 @@ Provider SDKs and Better Auth plugin implementation stay private under provider
 and integration folders. Catalog owns product semantics and display values; the
 selected Provider and its Webhook responses own actual payment facts. `cost` is
 never a checkout or accounting input. Checkout uses only the configured Stripe
-Price ID, and database amounts must use the Provider Webhook's integer minor-unit
-amount.
+Price ID and Polar uses its Product ID. Database amounts must use the Provider
+Webhook's integer minor-unit amount.
 
 ## Security and transaction notes
 
 Webhook signature verification and protocol responses remain exclusively in the
-official Better Auth Stripe plugin at `/api/auth/stripe/webhook`; the app does
-not create a second webhook route. Billing actions receive a trusted user id
+official Better Auth plugin: Stripe uses `/api/auth/stripe/webhook`, and Polar
+uses `/api/auth/polar/webhooks`. The app does not create a second webhook route.
+Billing actions receive a trusted user id
 from an authenticated server action and a constrained locale, never a client
 URL or provider SDK object. Provider faults become `BillingUnavailableError`;
 programming and database errors are not silently converted to Free.

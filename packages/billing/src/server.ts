@@ -14,8 +14,9 @@ import type {
 } from '#types';
 
 /**
- * The only Auth integration seam. The returned official plugin owns the
- * signed Better Auth webhook and generated subscription schema.
+ * The only Auth integration seam. The selected official plugin owns its signed
+ * Better Auth webhook; Stripe contributes its generated schema, while Polar
+ * links customers through external Better Auth user ids without billing tables.
  */
 export function createBetterAuthBillingPlugin(): BetterAuthPlugin | undefined {
   return createBillingPlugin();

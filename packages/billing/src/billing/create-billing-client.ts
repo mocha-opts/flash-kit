@@ -1,6 +1,7 @@
 import { serverEnv } from '@repo/config/env/server';
 
 import { getBillingProviderCapabilities } from '#config/provider-capabilities';
+import { PolarBillingProvider } from '#providers/polar/polar-billing-provider';
 import { StripeBillingProvider } from '#providers/stripe/stripe-billing-provider';
 import { type BillingClient, type BillingProvider, BillingUnavailableError } from '#types';
 
@@ -10,6 +11,10 @@ export function createBillingClient(): BillingClient {
 
   if (provider === 'stripe') {
     return new StripeBillingProvider();
+  }
+
+  if (provider === 'polar') {
+    return new PolarBillingProvider();
   }
 
   return createUnavailableBillingClient(provider);

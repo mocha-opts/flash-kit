@@ -19,6 +19,8 @@
   "dependencies": {
     "@better-auth/core": "catalog:",
     "@better-auth/stripe": "catalog:",
+    "@polar-sh/better-auth": "catalog:",
+    "@polar-sh/sdk": "catalog:",
     "@repo/config": "workspace:*",
     "@repo/db": "workspace:*",
     "react": "catalog:",
