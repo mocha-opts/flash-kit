@@ -3,7 +3,7 @@ import { z } from 'zod';
 /** Only the explicitly supported Catalog checkout plans can be requested. */
 export const checkoutSchema = z
   .object({
-    planId: z.enum(['pro-monthly', 'pro-yearly', 'lifetime']),
+    planId: z.enum(['pro-monthly', 'pro-yearly', 'lifetime', 'credit-pack-100']),
   })
   .strict();
 

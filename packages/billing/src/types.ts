@@ -80,6 +80,7 @@ export type CatalogPlan = FreePlan | SubscriptionPlan | LifetimePlan | CreditPac
 export type BillingCapabilities = {
   readonly checkout: boolean;
   readonly lifetimeCheckout: boolean;
+  readonly creditCheckout: boolean;
   readonly customerPortal: boolean;
   readonly cancelSubscription: boolean;
   readonly restoreSubscription: boolean;
@@ -137,10 +138,37 @@ export type CreditBalance = {
 };
 
 /** Read model for credit history; mutation and authorization remain server-side. */
+export type CreditTransactionType = 'purchase' | 'consumption' | 'refund' | 'adjustment';
+
+/** Minimal provider-neutral purchase summary attached to a credit transaction. */
+export type CreditTransactionPurchaseSummary = {
+  readonly id: string;
+  readonly provider: BillingProvider;
+  readonly planId: string;
+  readonly amount: number;
+  readonly currency: string;
+  readonly purchasedAt: string;
+};
+
+/** Serializable provider-neutral credit ledger entry. */
 export type CreditTransactionView = {
   readonly id: string;
+  readonly type: CreditTransactionType;
   readonly amount: number;
+  readonly balanceAfter: number;
   readonly description: string;
+  readonly referenceType: string;
+  readonly referenceId: string;
+  readonly purchase: CreditTransactionPurchaseSummary | null;
+  readonly createdAt: string;
+};
+
+/** Serializable page returned by the user-scoped credit history boundary. */
+export type CreditTransactionsPage = {
+  readonly items: readonly CreditTransactionView[];
+  readonly page: number;
+  readonly limit: number;
+  readonly hasNext: boolean;
 };
 
 /** Query shape for the stable, user-scoped credit read boundary. */

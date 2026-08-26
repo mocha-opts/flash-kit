@@ -15,6 +15,7 @@ export const billingProviderCapabilities = {
   stripe: {
     checkout: true,
     lifetimeCheckout: true,
+    creditCheckout: true,
     customerPortal: true,
     cancelSubscription: true,
     restoreSubscription: true,
@@ -22,6 +23,7 @@ export const billingProviderCapabilities = {
   polar: {
     checkout: true,
     lifetimeCheckout: true,
+    creditCheckout: true,
     customerPortal: true,
     cancelSubscription: true,
     restoreSubscription: true,

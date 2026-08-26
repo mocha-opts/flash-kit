@@ -1,6 +1,7 @@
 import 'server-only';
 
 import type { BetterAuthPlugin } from '@better-auth/core';
+import { getCreditBalanceForUser, listCreditTransactionsForUser } from '@repo/db/queries/billing';
 
 import { createBillingPlugin } from '#better-auth/create-billing-plugin';
 import { createBillingClient } from '#billing/create-billing-client';
@@ -10,6 +11,7 @@ import type {
   ConsumeCreditsInput,
   CreditBalance,
   CreditTransactionsInput,
+  CreditTransactionsPage,
   CreditTransactionView,
 } from '#types';
 
@@ -40,25 +42,80 @@ export async function hasFeature(input: {
   return await createBillingClient().hasFeature(input);
 }
 
-/**
- * Stable credit read boundary. The credit ledger is intentionally owned by a
- * later billing ticket; keep this export available without pretending T09
- * implements accounting.
- */
-export async function getCreditBalance(_input: {
-  readonly userId: string;
-}): Promise<CreditBalance> {
-  throw new Error('Credit operations are not implemented until a later billing ticket.');
+/** Returns the current integer credit balance for a trusted user id. */
+export async function getCreditBalance(input: { readonly userId: string }): Promise<CreditBalance> {
+  return {
+    userId: input.userId,
+    balance: await getCreditBalanceForUser(input.userId),
+  };
 }
 
-/** Stable credit history boundary reserved for a later billing ticket. */
+/** Returns an immutable, provider-neutral page of the user's credit history. */
 export async function listCreditTransactions(
-  _input: CreditTransactionsInput,
-): Promise<readonly CreditTransactionView[]> {
-  throw new Error('Credit operations are not implemented until a later billing ticket.');
+  input: CreditTransactionsInput,
+): Promise<CreditTransactionsPage> {
+  const page = normalizePage(input.page);
+  const limit = normalizeLimit(input.limit);
+  const result = await listCreditTransactionsForUser({
+    userId: input.userId,
+    page,
+    limit,
+  });
+
+  return {
+    page,
+    limit,
+    hasNext: result.hasNext,
+    items: result.items.map(
+      ({ transaction, purchase }): CreditTransactionView => ({
+        id: transaction.id,
+        type: transaction.type,
+        amount: transaction.amount,
+        balanceAfter: transaction.balanceAfter,
+        description: transaction.description,
+        referenceType: transaction.referenceType,
+        referenceId: transaction.referenceId,
+        createdAt: transaction.createdAt.toISOString(),
+        purchase: purchase
+          ? {
+              id: purchase.id,
+              provider: purchase.provider,
+              planId: purchase.planId,
+              amount: purchase.amount,
+              currency: purchase.currency,
+              purchasedAt: purchase.purchasedAt.toISOString(),
+            }
+          : null,
+      }),
+    ),
+  };
 }
 
 /** Stable atomic credit-consumption boundary reserved for a later billing ticket. */
 export async function consumeCredits(_input: ConsumeCreditsInput): Promise<never> {
   throw new Error('Credit operations are not implemented until a later billing ticket.');
+}
+
+function normalizePage(page: number | undefined): number {
+  if (page === undefined) {
+    return 1;
+  }
+
+  if (!Number.isSafeInteger(page) || page < 1) {
+    throw new RangeError('Credit transaction page must be a positive integer.');
+  }
+
+  return page;
+}
+
+function normalizeLimit(limit: number | undefined): number {
+  if (limit === undefined) {
+    return 50;
+  }
+
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    throw new RangeError('Credit transaction limit must be an integer from 1 to 100.');
+  }
+
+  return limit;
 }

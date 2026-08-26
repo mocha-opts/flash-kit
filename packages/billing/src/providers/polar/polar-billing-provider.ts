@@ -30,7 +30,7 @@ import {
 
 import { createPolarClient } from './polar-client';
 
-const checkoutPlanIds = new Set(['pro-monthly', 'pro-yearly', 'lifetime']);
+const checkoutPlanIds = new Set(['pro-monthly', 'pro-yearly', 'lifetime', 'credit-pack-100']);
 const noRetries = { retries: { strategy: 'none' as const } };
 
 /** Internal sentinel used only to preserve a normal Free state for new Polar customers. */
@@ -96,6 +96,7 @@ export class PolarBillingProvider implements BillingClient {
             planId: plan.id,
             purchaseKind: plan.kind,
             productId,
+            ...(plan.kind === 'credit-package' ? { credits: String(plan.credits) } : {}),
             ...(plan.kind === 'subscription' ? { referenceId: userRecord.id } : {}),
           },
         },
@@ -323,14 +324,18 @@ export class PolarBillingProvider implements BillingClient {
 function getCheckoutPlan(planId: string) {
   if (!checkoutPlanIds.has(planId)) {
     throw new Error(
-      'Only the Catalog pro-monthly, pro-yearly, and lifetime plans support checkout.',
+      'Only the Catalog subscription, lifetime, and credit pack plans support checkout.',
     );
   }
 
   const plan = getCatalogPlan(planId);
 
-  if (plan?.kind !== 'subscription' && plan?.kind !== 'lifetime') {
-    throw new Error(`Catalog plan "${planId}" is not a subscription or Lifetime plan.`);
+  if (
+    plan?.kind !== 'subscription' &&
+    plan?.kind !== 'lifetime' &&
+    plan?.kind !== 'credit-package'
+  ) {
+    throw new Error(`Catalog plan "${planId}" is not a supported checkout plan.`);
   }
 
   return plan;

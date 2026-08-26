@@ -12,8 +12,15 @@ import {
   restoreSubscriptionAction,
 } from '../_actions/billing.actions';
 
-type BillingCapability = keyof BillingCapabilities;
-type PendingAction = BillingCapability | null;
+type SubscriptionCheckoutPlan = 'pro-monthly' | 'pro-yearly';
+type PendingAction =
+  | { readonly kind: 'subscriptionCheckout'; readonly planId: SubscriptionCheckoutPlan }
+  | { readonly kind: 'lifetimeCheckout' }
+  | { readonly kind: 'creditCheckout' }
+  | { readonly kind: 'portal' }
+  | { readonly kind: 'cancel' }
+  | { readonly kind: 'restore' }
+  | null;
 type Feedback = { readonly kind: 'error' | 'success'; readonly message: string } | null;
 type BillingActionResult =
   | Awaited<ReturnType<typeof cancelSubscriptionAction>>
@@ -28,6 +35,8 @@ export type BillingActionsLabels = {
   readonly checkoutDescription: string;
   readonly checkoutLifetime: string;
   readonly checkoutLifetimePending: string;
+  readonly checkoutCreditPack: string;
+  readonly checkoutCreditPackPending: string;
   readonly checkoutMonthly: string;
   readonly checkoutMonthlyPending: string;
   readonly checkoutTitle: string;
@@ -35,6 +44,8 @@ export type BillingActionsLabels = {
   readonly checkoutYearlyPending: string;
   readonly lifetimeDescription: string;
   readonly lifetimeTitle: string;
+  readonly creditPackDescription: string;
+  readonly creditPackTitle: string;
   readonly manageDescription: string;
   readonly manageTitle: string;
   readonly portal: string;
@@ -70,6 +81,7 @@ export function BillingActions({
   const showSubscriptionCheckout =
     capabilities.checkout && !lifetimeActive && !hasActiveSubscription;
   const showLifetimeCheckout = capabilities.lifetimeCheckout && !lifetimeActive;
+  const showCreditCheckout = capabilities.creditCheckout;
   const showPortal = capabilities.customerPortal && subscriptionId !== null;
   const showCancel =
     capabilities.cancelSubscription &&
@@ -79,18 +91,23 @@ export function BillingActions({
   const showRestore =
     capabilities.restoreSubscription && subscriptionId !== null && cancelAtPeriodEnd;
   const hasActions =
-    showSubscriptionCheckout || showLifetimeCheckout || showPortal || showCancel || showRestore;
+    showSubscriptionCheckout ||
+    showLifetimeCheckout ||
+    showCreditCheckout ||
+    showPortal ||
+    showCancel ||
+    showRestore;
 
   if (!hasActions) {
     return null;
   }
 
   const runAction = async (
-    action: PendingAction,
+    action: Exclude<PendingAction, null>,
     request: () => Promise<BillingActionResult>,
     success?: boolean,
   ) => {
-    if (pendingAction !== null || action === null) {
+    if (pendingAction !== null) {
       return;
     }
 
@@ -144,33 +161,45 @@ export function BillingActions({
           <div className="flex min-w-0 flex-wrap gap-3 sm:justify-end sm:self-end">
             <button
               aria-label={
-                pendingAction === 'checkout'
+                pendingAction?.kind === 'subscriptionCheckout' &&
+                pendingAction.planId === 'pro-monthly'
                   ? labels.checkoutMonthlyPending
                   : labels.checkoutMonthly
               }
               className={buttonVariants({ size: 'sm' })}
               disabled={pendingAction !== null}
               onClick={() =>
-                void runAction('checkout', () => createCheckoutAction({ planId: 'pro-monthly' }))
+                void runAction({ kind: 'subscriptionCheckout', planId: 'pro-monthly' }, () =>
+                  createCheckoutAction({ planId: 'pro-monthly' }),
+                )
               }
               type="button"
             >
-              {pendingAction === 'checkout'
+              {pendingAction?.kind === 'subscriptionCheckout' &&
+              pendingAction.planId === 'pro-monthly'
                 ? labels.checkoutMonthlyPending
                 : labels.checkoutMonthly}
             </button>
             <button
               aria-label={
-                pendingAction === 'checkout' ? labels.checkoutYearlyPending : labels.checkoutYearly
+                pendingAction?.kind === 'subscriptionCheckout' &&
+                pendingAction.planId === 'pro-yearly'
+                  ? labels.checkoutYearlyPending
+                  : labels.checkoutYearly
               }
               className={buttonVariants({ variant: 'secondary', size: 'sm' })}
               disabled={pendingAction !== null}
               onClick={() =>
-                void runAction('checkout', () => createCheckoutAction({ planId: 'pro-yearly' }))
+                void runAction({ kind: 'subscriptionCheckout', planId: 'pro-yearly' }, () =>
+                  createCheckoutAction({ planId: 'pro-yearly' }),
+                )
               }
               type="button"
             >
-              {pendingAction === 'checkout' ? labels.checkoutYearlyPending : labels.checkoutYearly}
+              {pendingAction?.kind === 'subscriptionCheckout' &&
+              pendingAction.planId === 'pro-yearly'
+                ? labels.checkoutYearlyPending
+                : labels.checkoutYearly}
             </button>
           </div>
         </div>
@@ -187,20 +216,54 @@ export function BillingActions({
           <div className="flex min-w-0 flex-wrap gap-3 sm:justify-end sm:self-end">
             <button
               aria-label={
-                pendingAction === 'checkout'
+                pendingAction?.kind === 'lifetimeCheckout'
                   ? labels.checkoutLifetimePending
                   : labels.checkoutLifetime
               }
               className={buttonVariants({ size: 'sm' })}
               disabled={pendingAction !== null}
               onClick={() =>
-                void runAction('checkout', () => createCheckoutAction({ planId: 'lifetime' }))
+                void runAction({ kind: 'lifetimeCheckout' }, () =>
+                  createCheckoutAction({ planId: 'lifetime' }),
+                )
               }
               type="button"
             >
-              {pendingAction === 'checkout'
+              {pendingAction?.kind === 'lifetimeCheckout'
                 ? labels.checkoutLifetimePending
                 : labels.checkoutLifetime}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {showCreditCheckout ? (
+        <div className="mt-8 grid gap-4 border-t border-border pt-6 sm:grid-cols-2">
+          <div className="min-w-0">
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              {labels.creditPackTitle}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{labels.creditPackDescription}</p>
+          </div>
+          <div className="flex min-w-0 flex-wrap gap-3 sm:justify-end sm:self-end">
+            <button
+              aria-label={
+                pendingAction?.kind === 'creditCheckout'
+                  ? labels.checkoutCreditPackPending
+                  : labels.checkoutCreditPack
+              }
+              className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+              disabled={pendingAction !== null}
+              onClick={() =>
+                void runAction({ kind: 'creditCheckout' }, () =>
+                  createCheckoutAction({ planId: 'credit-pack-100' }),
+                )
+              }
+              type="button"
+            >
+              {pendingAction?.kind === 'creditCheckout'
+                ? labels.checkoutCreditPackPending
+                : labels.checkoutCreditPack}
             </button>
           </div>
         </div>
@@ -209,13 +272,13 @@ export function BillingActions({
       <div className="mt-8 flex min-w-0 flex-wrap gap-3 border-t border-border pt-6">
         {showPortal ? (
           <button
-            aria-label={pendingAction === 'customerPortal' ? labels.portalPending : labels.portal}
+            aria-label={pendingAction?.kind === 'portal' ? labels.portalPending : labels.portal}
             className={buttonVariants({ variant: 'secondary', size: 'sm' })}
             disabled={pendingAction !== null}
-            onClick={() => void runAction('customerPortal', () => createPortalAction({}))}
+            onClick={() => void runAction({ kind: 'portal' }, () => createPortalAction({}))}
             type="button"
           >
-            {pendingAction === 'customerPortal' ? labels.portalPending : labels.portal}
+            {pendingAction?.kind === 'portal' ? labels.portalPending : labels.portal}
           </button>
         ) : null}
         {showCancel ? (
@@ -224,14 +287,14 @@ export function BillingActions({
             disabled={pendingAction !== null}
             onClick={() =>
               void runAction(
-                'cancelSubscription',
+                { kind: 'cancel' },
                 () => cancelSubscriptionAction({ subscriptionId: subscriptionId ?? '' }),
                 true,
               )
             }
             type="button"
           >
-            {pendingAction === 'cancelSubscription' ? labels.cancelPending : labels.cancel}
+            {pendingAction?.kind === 'cancel' ? labels.cancelPending : labels.cancel}
           </button>
         ) : null}
         {showRestore ? (
@@ -240,14 +303,14 @@ export function BillingActions({
             disabled={pendingAction !== null}
             onClick={() =>
               void runAction(
-                'restoreSubscription',
+                { kind: 'restore' },
                 () => restoreSubscriptionAction({ subscriptionId: subscriptionId ?? '' }),
                 true,
               )
             }
             type="button"
           >
-            {pendingAction === 'restoreSubscription' ? labels.restorePending : labels.restore}
+            {pendingAction?.kind === 'restore' ? labels.restorePending : labels.restore}
           </button>
         ) : null}
       </div>

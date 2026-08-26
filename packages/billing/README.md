@@ -3,8 +3,9 @@
 ## Responsibility and non-goals
 
 `@repo/billing` owns the provider-neutral billing boundary, the product Catalog,
-capability declarations, reusable pricing display components, and the private
-Stripe and Polar subscription and one-time purchase adapters.
+capability declarations, reusable pricing display components, the private
+Stripe and Polar subscription/one-time purchase adapters, and the read boundary
+for the append-only Credit ledger.
 The selected deployment gets checkout, customer portal, subscription
 reads/cancellation/restoration, and its official Better Auth plugin; the
 unselected provider is never initialized.
@@ -15,27 +16,34 @@ portal, and signed webhook integration. It does not install the official
 provider-neutral `BillingClient.createCheckout`, which enforces Catalog Product
 IDs and, for subscription checkout, the active-subscription guard.
 
-Lifetime checkout for either provider is created only through `BillingClient`.
-Stripe uses the Catalog Price ID in a one-time Checkout Session and stores the
-provider's PaymentIntent amount/currency after the official Better Auth Stripe
-webhook has verified the signature. Polar uses the Catalog Product ID and stores
-the signed `order.paid` payload's `totalAmount`/`currency`. Lifetime fulfillment
-is handled by the selected official plugin's dedicated callback: Stripe's
-`onEvent` callback handles `checkout.session.completed`,
+Lifetime and Credit Pack checkout for either provider is created only through
+`BillingClient`. Stripe uses the Catalog Price ID in a one-time Checkout Session
+and stores the provider's PaymentIntent amount/currency after the official
+Better Auth Stripe webhook has verified the signature. Polar uses the Catalog
+Product ID and stores the signed `order.paid` payload's `totalAmount`/`currency`.
+Credit Pack metadata carries the Catalog's integer `credits` value as a decimal
+string; display-only `cost` is never sent to a provider or used for accounting.
+One-time fulfillment is handled by the selected official plugin's dedicated
+callback: Stripe's `onEvent` callback handles `checkout.session.completed`,
 `checkout.session.async_payment_succeeded`, and
 `checkout.session.async_payment_failed`, while Polar's `onOrderPaid` handles
 `order.paid`; subscription events remain owned by the official plugin. The event
 ledger is PII-free, while the minimal Purchase record keeps only its required
 User ownership and order facts. Unique provider event/order identities ensure
-redelivery cannot grant Lifetime twice.
+redelivery cannot grant Lifetime or Credits twice.
 
-The provider-neutral `lifetimeCheckout` capability is enabled for both providers.
+The provider-neutral `lifetimeCheckout` and `creditCheckout` capabilities are
+enabled for both providers. Lifetime checkout is blocked only when the user
+already owns a paid Lifetime Purchase; active/trial subscriptions block only
+another Subscription checkout. Credit Pack checkout is always repeatable.
 
 It does not depend on `@repo/auth`, does not export provider SDKs or raw plugin
-responses, and does not add custom customer, product, price, subscription,
-feature-access, or credit tables. The local Purchase record and PII-free Event
-ledger are minimal records owned by `@repo/db`; this package only orchestrates
-their provider-confirmed writes. The official Better Auth plugin is the source
+responses, and does not add provider-specific customer, product, price,
+subscription, or feature-access tables. The `credit_account` and
+`credit_transaction` tables are owned by `@repo/db`; this package only
+orchestrates their provider-confirmed writes through the shared credit ledger.
+The local Purchase record and PII-free Event ledger are also minimal records
+owned by `@repo/db`. The official Better Auth plugin is the source
 of the generated Stripe `user.stripeCustomerId` column and `subscription` table
 in the database schema; the Polar plugin declares no billing tables and links
 customers through Better Auth user ids as external customer ids.
@@ -54,7 +62,7 @@ implementation-only dependencies and are never re-exported.
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary names. |
+| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary names, including Credit Balance and History reads. |
 | `@repo/billing/config` | `src/config/index.ts` | Provider and catalog configuration type boundary. |
 | `@repo/billing/types` | `src/types.ts` | Provider-neutral public billing types. |
 | `@repo/billing/components` | `src/components.ts` | Billing component type boundary. |
@@ -75,6 +83,15 @@ export function Pricing({ action }: { readonly action: ReactNode }) {
 }
 ```
 
+Server actions and loaders use the provider-neutral credit reads:
+
+```ts
+import { getCreditBalance, listCreditTransactions } from '@repo/billing/server';
+
+const balance = await getCreditBalance({ userId });
+const history = await listCreditTransactions({ userId, page: 1, limit: 50 });
+```
+
 The Catalog is assembled once in `config/billing-catalog.ts` and parsed again
 with Zod at module initialization. It contains stable feature/limit keys,
 provider Product/Price IDs, and display-only `cost`/`currency` values for Free,
@@ -90,7 +107,12 @@ selected Provider and its Webhook responses own actual payment facts. `cost` is
 never a checkout or accounting input. Checkout uses only the configured Stripe
 Price ID and Polar uses its Product ID. Database amounts must use the Provider
 Webhook's integer minor-unit amount: Stripe's `PaymentIntent.amount_received`
-or Polar's signed `order.paid.totalAmount`.
+or Polar's signed `order.paid.totalAmount`. The Credit quantity comes only from
+server-created, provider-signed checkout metadata. Stripe cross-checks the
+Session and PaymentIntent values; Polar validates the value in its signed order.
+Product, Price (Stripe), and plan identity remain checked against the active
+Catalog, while the checkout-time Credit quantity is preserved if Catalog copy
+changes before fulfillment.
 
 ## Security and transaction notes
 
@@ -102,17 +124,28 @@ retrieves the signed Checkout Session and expanded PaymentIntent/line items
 outside the database transaction. Polar consumes the already signed Order
 facts without an additional retrieve. Both callbacks resolve provider facts
 outside the database transaction, then share the private purchase-event
-orchestrator to claim the event, insert the provider-confirmed purchase, and
-mark the event terminal in one transaction. Provider/retrieval failures record
-only a fixed safe event error and are rethrown for non-2xx redelivery.
+orchestrator to claim the event, insert the provider-confirmed Purchase, append
+a Credit grant when the Purchase is a Credit Pack, and mark the event terminal
+in one transaction. Purchase, Credit Account, Credit Transaction, and processed
+Event changes commit or roll back together. Provider/retrieval/database
+failures record only a fixed safe event error and are rethrown for non-2xx
+redelivery; the application does not add an internal retry loop.
 
 Polar's Better Auth callback does not expose the original Standard Webhooks
 `webhook-id` header. Its event identity is therefore the explicit order-scoped
 semantic key `order.paid:<orderId>`; it is not the provider delivery ID. Polar
-Lifetime requires `billingReason = purchase`, no subscription, exact Catalog
-Product/metadata/customer ownership, paid status, and a positive safe-integer
-`totalAmount` with lowercase three-letter `currency`. Refunds and disputes are
-handled by later billing work.
+Lifetime and Credit Pack require `billingReason = purchase`, no subscription,
+exact Catalog Product/metadata/customer ownership, paid status, one-time product
+semantics, and a positive safe-integer `totalAmount` with lowercase three-letter
+`currency`. Credit metadata must parse to the exact positive integer captured at
+checkout; Stripe also requires the Session and PaymentIntent metadata to match.
+Refunds and disputes are handled by later billing work.
+
+`getCreditBalance` returns `{ userId, balance }`. `listCreditTransactions`
+defaults to page 1 and limit 50, accepts at most 100 rows, and returns
+serializable ISO timestamps plus a minimal related Purchase summary (or null).
+Credit reads are user-scoped server calls; `consumeCredits` remains a T14
+placeholder and is not an HTTP route.
 
 Billing actions receive a trusted user id
 from an authenticated server action and a constrained locale, never a client

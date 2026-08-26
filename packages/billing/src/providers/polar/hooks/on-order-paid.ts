@@ -1,16 +1,22 @@
 import type { WebhookOrderPaidPayload } from '@polar-sh/sdk/models/components/webhookorderpaidpayload.js';
 import { getBillingUser } from '@repo/db/queries/billing';
 
+import { getCatalogPlan } from '#billing-config/index';
 import { getPolarProductId } from '#internal/catalog-pricing';
 import {
   type PurchaseEventResolution,
   processPurchaseEvent,
 } from '#internal/process-purchase-event';
+import type { CatalogPlan } from '#types';
 
 const lifetimePlanId = 'lifetime';
+const creditPackPlanId = 'credit-pack-100';
 const lifetimePurchaseKind = 'lifetime';
-const lifetimeProcessingErrorCode = 'polar_lifetime_order_processing_failed';
-const lifetimeProcessingErrorMessage = 'Polar Lifetime order processing failed.';
+const creditPackPurchaseKind = 'credit-package';
+const processingErrorCode = 'one_time_order_processing_failed';
+const processingErrorMessage = 'One-time order processing failed.';
+
+type OneTimePlan = Extract<CatalogPlan, { readonly kind: 'lifetime' | 'credit-package' }>;
 
 /**
  * Handles the official Polar `order.paid` callback after Better Auth verifies
@@ -28,8 +34,8 @@ export async function handlePolarOrderPaid(payload: WebhookOrderPaidPayload): Pr
     },
     resolve: async () => resolvePolarPurchase(order),
     failure: {
-      code: lifetimeProcessingErrorCode,
-      message: lifetimeProcessingErrorMessage,
+      code: processingErrorCode,
+      message: processingErrorMessage,
     },
   });
 }
@@ -37,17 +43,27 @@ export async function handlePolarOrderPaid(payload: WebhookOrderPaidPayload): Pr
 async function resolvePolarPurchase(
   order: WebhookOrderPaidPayload['data'],
 ): Promise<PurchaseEventResolution> {
-  const expectedProductId = getPolarProductId(lifetimePlanId);
+  const plan = resolveOneTimePlan(order.metadata);
+  const candidateProductIds = getOneTimeProductIds();
 
-  if (!isLifetimeCandidate(order, expectedProductId)) {
+  if (!plan && (!order.productId || !candidateProductIds.has(order.productId))) {
     return { kind: 'ignored' };
   }
 
-  const userId = requireLifetimeOrder(order, expectedProductId);
+  if (!plan) {
+    throw new PolarOneTimeValidationError();
+  }
+
+  const expectedProductId = getPolarProductId(plan.id);
+  const {
+    userId,
+    checkoutId,
+    credits: checkoutCredits,
+  } = requireOneTimeOrder(order, plan, expectedProductId);
   const user = await getBillingUser(userId);
 
   if (!user) {
-    throw new PolarLifetimeValidationError();
+    throw new PolarOneTimeValidationError();
   }
 
   return {
@@ -56,40 +72,69 @@ async function resolvePolarPurchase(
       userId,
       provider: 'polar',
       providerOrderId: order.id,
-      providerCheckoutId: order.checkoutId,
+      providerCheckoutId: checkoutId,
       productId: expectedProductId,
-      planId: lifetimePlanId,
-      kind: lifetimePurchaseKind,
+      planId: plan.id,
+      kind: plan.kind === 'credit-package' ? 'credit_pack' : 'lifetime',
       status: 'paid',
       amount: order.totalAmount,
       currency: order.currency,
       purchasedAt: order.createdAt,
     },
+    ...(checkoutCredits !== undefined
+      ? {
+          creditGrant: {
+            amount: checkoutCredits,
+            description: `Credit pack purchase (${checkoutCredits} credits)`,
+          },
+        }
+      : {}),
   };
 }
 
-function isLifetimeCandidate(
-  order: WebhookOrderPaidPayload['data'],
-  expectedProductId: string,
-): boolean {
-  return (
-    order.productId === expectedProductId ||
-    getMetadataString(order.metadata, 'planId') === lifetimePlanId ||
-    getMetadataString(order.metadata, 'purchaseKind') === lifetimePurchaseKind
-  );
+function resolveOneTimePlan(
+  metadata: WebhookOrderPaidPayload['data']['metadata'],
+): OneTimePlan | null {
+  const planId = getMetadataString(metadata, 'planId');
+  const purchaseKind = getMetadataString(metadata, 'purchaseKind');
+
+  if (planId !== lifetimePlanId && planId !== creditPackPlanId) {
+    return null;
+  }
+
+  if (
+    (planId === lifetimePlanId && purchaseKind !== lifetimePurchaseKind) ||
+    (planId === creditPackPlanId && purchaseKind !== creditPackPurchaseKind)
+  ) {
+    return null;
+  }
+
+  const plan = getCatalogPlan(planId);
+
+  if (plan?.kind !== 'lifetime' && plan?.kind !== 'credit-package') {
+    return null;
+  }
+
+  return plan;
 }
 
-function requireLifetimeOrder(
+function getOneTimeProductIds(): ReadonlySet<string> {
+  return new Set([getPolarProductId(lifetimePlanId), getPolarProductId(creditPackPlanId)]);
+}
+
+function requireOneTimeOrder(
   order: WebhookOrderPaidPayload['data'],
+  plan: OneTimePlan,
   expectedProductId: string,
-): string {
+): { readonly userId: string; readonly checkoutId: string; readonly credits: number | undefined } {
   const userId = getMetadataString(order.metadata, 'userId');
   const metadataProductId = getMetadataString(order.metadata, 'productId');
+  const checkoutId = order.checkoutId;
 
   if (
     !userId ||
-    getMetadataString(order.metadata, 'planId') !== lifetimePlanId ||
-    getMetadataString(order.metadata, 'purchaseKind') !== lifetimePurchaseKind ||
+    getMetadataString(order.metadata, 'planId') !== plan.id ||
+    getMetadataString(order.metadata, 'purchaseKind') !== plan.kind ||
     metadataProductId !== expectedProductId ||
     order.productId !== expectedProductId ||
     order.customer.externalId !== userId ||
@@ -98,7 +143,7 @@ function requireLifetimeOrder(
     order.billingReason !== 'purchase' ||
     order.subscriptionId !== null ||
     !isNonEmptyString(order.id) ||
-    !isNonEmptyString(order.checkoutId) ||
+    !isNonEmptyString(checkoutId) ||
     (order.product !== null &&
       (order.product.id !== expectedProductId || order.product.isRecurring !== false)) ||
     !Number.isSafeInteger(order.totalAmount) ||
@@ -106,10 +151,39 @@ function requireLifetimeOrder(
     !isLowercaseCurrency(order.currency) ||
     !isValidDate(order.createdAt)
   ) {
-    throw new PolarLifetimeValidationError();
+    throw new PolarOneTimeValidationError();
   }
 
-  return userId;
+  const credits = readCreditMetadata(order.metadata, plan);
+
+  return { userId, checkoutId, credits };
+}
+
+function readCreditMetadata(
+  metadata: WebhookOrderPaidPayload['data']['metadata'],
+  plan: OneTimePlan,
+): number | undefined {
+  if (plan.kind === 'lifetime') {
+    if (getMetadataString(metadata, 'credits') !== null) {
+      throw new PolarOneTimeValidationError();
+    }
+
+    return undefined;
+  }
+
+  const rawCredits = getMetadataString(metadata, 'credits');
+
+  if (!rawCredits || !/^[1-9][0-9]*$/u.test(rawCredits)) {
+    throw new PolarOneTimeValidationError();
+  }
+
+  const credits = Number(rawCredits);
+
+  if (!Number.isSafeInteger(credits) || credits <= 0) {
+    throw new PolarOneTimeValidationError();
+  }
+
+  return credits;
 }
 
 function getMetadataString(
@@ -133,6 +207,6 @@ function isValidDate(value: Date): boolean {
   return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
-class PolarLifetimeValidationError extends Error {
-  override readonly name = 'PolarLifetimeValidationError';
+class PolarOneTimeValidationError extends Error {
+  override readonly name = 'PolarOneTimeValidationError';
 }

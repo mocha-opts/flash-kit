@@ -73,6 +73,7 @@
       "description": "这里显示当前部署实际提供的计费能力。",
       "checkout": "周期性结账",
       "lifetimeCheckout": "终身版结账",
+      "creditCheckout": "额度结账",
       "customerPortal": "客户门户",
       "cancelSubscription": "取消订阅",
       "restoreSubscription": "恢复订阅",
@@ -87,6 +88,54 @@
       "status": "状态",
       "active": "已生效",
       "inactive": "尚未购买"
+    },
+    "credits": {
+      "eyebrow": "额度余额",
+      "title": "额度",
+      "description": "查看预付生成额度的余额，以及只追加不改写的完整历史记录。",
+      "balanceLabel": "可用余额",
+      "units": "可用额度",
+      "purchaseTitle": "补充额度",
+      "purchaseDescription": "需要更多预付生成能力时，可以购买 100 点额度包。无论是否拥有订阅或终身版权限，都可以购买额度。",
+      "purchase": "购买 100 点额度",
+      "purchasePending": "正在打开额度结账……",
+      "error": "无法加载额度数据。",
+      "history": {
+        "title": "额度历史",
+        "description": "每次余额变化都会记录原因、有符号变动量、变动后的余额，以及可用的关联购买记录。",
+        "reason": "原因",
+        "type": "类型",
+        "amount": "变动",
+        "balanceAfter": "变动后余额",
+        "date": "时间",
+        "relatedPurchase": "关联购买",
+        "provider": "服务商",
+        "reference": "参考编号",
+        "emptyTitle": "还没有额度记录。",
+        "emptyDescription": "购买额度包和之后的使用记录会以只追加的方式显示在这里。",
+        "unknownPurchase": "购买详情不可用",
+        "unknownDate": "时间不可用"
+      },
+      "types": {
+        "purchase": "购买",
+        "consumption": "使用",
+        "refund": "退款",
+        "adjustment": "调整",
+        "unknown": "未知"
+      },
+      "reasons": {
+        "purchase": "购买额度包",
+        "consumption": "使用额度",
+        "refund": "额度包退款",
+        "adjustment": "调整余额",
+        "unknown": "额度余额变动"
+      },
+      "pagination": {
+        "label": "额度历史分页",
+        "previous": "上一页",
+        "next": "下一页",
+        "page": "第 {page} 页"
+      }
     },
     "plans": {
       "free": "免费",

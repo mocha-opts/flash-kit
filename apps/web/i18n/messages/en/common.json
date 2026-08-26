@@ -73,6 +73,7 @@
       "description": "Actions shown here are the capabilities currently available to this deployment.",
       "checkout": "Recurring checkout",
       "lifetimeCheckout": "Lifetime checkout",
+      "creditCheckout": "Credit checkout",
       "customerPortal": "Customer portal",
       "cancelSubscription": "Cancel subscription",
       "restoreSubscription": "Restore subscription",
@@ -87,6 +88,54 @@
       "status": "Status",
       "active": "Active",
       "inactive": "Not purchased"
+    },
+    "credits": {
+      "eyebrow": "CREDIT BALANCE",
+      "title": "Credits",
+      "description": "Keep your prepaid generation balance and its append-only history in view.",
+      "balanceLabel": "Available balance",
+      "units": "credits available",
+      "purchaseTitle": "Add more credits",
+      "purchaseDescription": "Buy a 100-credit pack whenever you need more prepaid generation capacity. Credit checkout remains available with or without a subscription or Lifetime access.",
+      "purchase": "Buy 100 credits",
+      "purchasePending": "Opening credit checkout…",
+      "error": "Credit data could not be loaded.",
+      "history": {
+        "title": "Credit history",
+        "description": "Each balance change is recorded with its reason, signed amount, resulting balance, and related purchase when available.",
+        "reason": "Reason",
+        "type": "Type",
+        "amount": "Change",
+        "balanceAfter": "Balance after",
+        "date": "Date",
+        "relatedPurchase": "Related purchase",
+        "provider": "Provider",
+        "reference": "Reference",
+        "emptyTitle": "No credit activity yet.",
+        "emptyDescription": "Purchased credit packs and future usage will appear here as an append-only history.",
+        "unknownPurchase": "Purchase details unavailable",
+        "unknownDate": "Date unavailable"
+      },
+      "types": {
+        "purchase": "Purchase",
+        "consumption": "Usage",
+        "refund": "Refund",
+        "adjustment": "Adjustment",
+        "unknown": "Unknown"
+      },
+      "reasons": {
+        "purchase": "Credit pack purchased",
+        "consumption": "Credits used",
+        "refund": "Credit pack refunded",
+        "adjustment": "Balance adjusted",
+        "unknown": "Credit balance update"
+      },
+      "pagination": {
+        "label": "Credit history pages",
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page {page}"
+      }
     },
     "plans": {
       "free": "Free",

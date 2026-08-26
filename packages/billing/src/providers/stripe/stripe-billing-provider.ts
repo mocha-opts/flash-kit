@@ -76,12 +76,23 @@ export class StripeBillingProvider implements BillingClient {
       purchaseKind: plan.kind,
       productId,
       priceId,
+      ...(plan.kind === 'credit-package' ? { credits: String(plan.credits) } : {}),
       ...(plan.kind === 'subscription' ? { referenceId: userRecord.id } : {}),
     };
     const session = await this.providerCall('checkout', () =>
       this.client.checkout.sessions.create(
-        plan.kind === 'lifetime'
+        plan.kind === 'subscription'
           ? {
+              mode: 'subscription',
+              customer: customerId,
+              line_items: [{ price: priceId, quantity: 1 }],
+              client_reference_id: userRecord.id,
+              locale: toStripeLocale(locale),
+              success_url: getCheckoutSuccessUrl(locale),
+              cancel_url: getCheckoutCancelUrl(locale),
+              subscription_data: { metadata },
+            }
+          : {
               mode: 'payment',
               customer: customerId,
               line_items: [{ price: priceId, quantity: 1 }],
@@ -91,16 +102,6 @@ export class StripeBillingProvider implements BillingClient {
               cancel_url: getCheckoutCancelUrl(locale),
               metadata,
               payment_intent_data: { metadata },
-            }
-          : {
-              mode: 'subscription',
-              customer: customerId,
-              line_items: [{ price: priceId, quantity: 1 }],
-              client_reference_id: userRecord.id,
-              locale: toStripeLocale(locale),
-              success_url: getCheckoutSuccessUrl(locale),
-              cancel_url: getCheckoutCancelUrl(locale),
-              subscription_data: { metadata },
             },
       ),
     );
@@ -271,9 +272,13 @@ export class StripeBillingProvider implements BillingClient {
 function getCheckoutPlan(planId: string) {
   const plan = getCatalogPlan(planId);
 
-  if (plan?.kind !== 'subscription' && plan?.kind !== 'lifetime') {
+  if (
+    plan?.kind !== 'subscription' &&
+    plan?.kind !== 'lifetime' &&
+    plan?.kind !== 'credit-package'
+  ) {
     throw new Error(
-      'Only the Catalog pro-monthly, pro-yearly, and lifetime plans support checkout.',
+      'Only the Catalog subscription, lifetime, and credit pack plans support checkout.',
     );
   }
 

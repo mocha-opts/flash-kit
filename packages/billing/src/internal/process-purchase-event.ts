@@ -9,11 +9,19 @@ import {
   type UpsertBillingEventInput,
   upsertBillingEvent,
 } from '@repo/db/queries/billing';
+import { grantCreditsForPurchase } from '#credits/grant-purchase-credits';
 
 /** Result of resolving a verified provider event into a local purchase fact. */
 export type PurchaseEventResolution =
   | { readonly kind: 'ignored' }
-  | { readonly kind: 'paid'; readonly purchase: InsertBillingPurchaseInput };
+  | {
+      readonly kind: 'paid';
+      readonly purchase: InsertBillingPurchaseInput;
+      readonly creditGrant?: {
+        readonly amount: number;
+        readonly description: string;
+      };
+    };
 
 /** Fixed, non-sensitive failure details owned by the provider adapter. */
 export type PurchaseEventFailure = {
@@ -57,7 +65,17 @@ export async function processPurchaseEvent(input: ProcessPurchaseEventInput): Pr
         return;
       }
 
-      await insertBillingPurchase(transaction, resolution.purchase);
+      const { purchase } = await insertBillingPurchase(transaction, resolution.purchase);
+
+      if (resolution.creditGrant) {
+        await grantCreditsForPurchase(transaction, {
+          userId: resolution.purchase.userId,
+          purchaseId: purchase.id,
+          amount: resolution.creditGrant.amount,
+          description: resolution.creditGrant.description,
+        });
+      }
+
       await markBillingEventProcessed(transaction, claim.event.id);
     });
   } catch (cause) {
