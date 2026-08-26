@@ -79,6 +79,7 @@ export type CatalogPlan = FreePlan | SubscriptionPlan | LifetimePlan | CreditPac
 /** Provider capabilities exposed to billing callers. */
 export type BillingCapabilities = {
   readonly checkout: boolean;
+  readonly lifetimeCheckout: boolean;
   readonly customerPortal: boolean;
   readonly cancelSubscription: boolean;
   readonly restoreSubscription: boolean;
@@ -181,7 +182,7 @@ export class BillingUnavailableError extends Error {
 export class BillingEmailVerificationRequiredError extends Error {
   override readonly name = 'BillingEmailVerificationRequiredError';
 
-  constructor(message = 'Email verification is required before starting a subscription.') {
+  constructor(message = 'Email verification is required before starting checkout.') {
     super(message);
   }
 }
@@ -191,6 +192,15 @@ export class ActiveSubscriptionExistsError extends Error {
   override readonly name = 'ActiveSubscriptionExistsError';
 
   constructor(message = 'The user already has an active or trialing subscription.') {
+    super(message);
+  }
+}
+
+/** Prevents another Lifetime checkout after a paid Lifetime purchase exists. */
+export class LifetimePurchaseExistsError extends Error {
+  override readonly name = 'LifetimePurchaseExistsError';
+
+  constructor(message = 'The user already owns a Lifetime purchase.') {
     super(message);
   }
 }

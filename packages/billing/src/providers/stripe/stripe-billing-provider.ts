@@ -1,5 +1,6 @@
 import {
   type BillingUserRecord,
+  getActiveLifetimePurchaseForUser,
   getBillingUser,
   setStripeCustomerIdIfMissing,
 } from '@repo/db/queries/billing';
@@ -7,7 +8,7 @@ import type Stripe from 'stripe';
 
 import { getCatalogPlan } from '#billing-config/index';
 import { getBillingProviderCapabilities } from '#config/provider-capabilities';
-import { getStripePriceId } from '#internal/catalog-pricing';
+import { getStripePriceId, getStripeProductId } from '#internal/catalog-pricing';
 import {
   getBillingReturnUrl,
   getCheckoutCancelUrl,
@@ -28,10 +29,9 @@ import {
   ActiveSubscriptionExistsError,
   BillingEmailVerificationRequiredError,
   BillingUnavailableError,
+  LifetimePurchaseExistsError,
 } from '#types';
 import { createStripeClient, isStripeProviderFailure } from './stripe-client';
-
-const checkoutPlanIds = new Set(['pro-monthly', 'pro-yearly']);
 
 /** Private Stripe adapter; no Stripe types or raw responses leave this module. */
 export class StripeBillingProvider implements BillingClient {
@@ -48,32 +48,61 @@ export class StripeBillingProvider implements BillingClient {
       throw new BillingEmailVerificationRequiredError();
     }
 
-    const customerId = await this.ensureCustomer(userRecord);
-    const subscriptions = await this.listSubscriptionsForCustomer(customerId);
+    if (plan.kind === 'lifetime') {
+      const lifetimePurchase = await getActiveLifetimePurchaseForUser(userRecord.id);
 
-    if (subscriptions.some(isActiveOrTrialing)) {
-      throw new ActiveSubscriptionExistsError();
+      if (lifetimePurchase) {
+        throw new LifetimePurchaseExistsError();
+      }
+    }
+
+    const customerId = await this.ensureCustomer(userRecord);
+
+    if (plan.kind === 'subscription') {
+      const subscriptions = await this.listSubscriptionsForCustomer(customerId);
+
+      if (subscriptions.some(isActiveOrTrialing)) {
+        throw new ActiveSubscriptionExistsError();
+      }
     }
 
     const locale = input.locale ?? 'en';
+    const productId = getStripeProductId(plan.id);
     const priceId = getStripePriceId(plan.id);
 
+    const metadata = {
+      userId: userRecord.id,
+      planId: plan.id,
+      purchaseKind: plan.kind,
+      productId,
+      priceId,
+      ...(plan.kind === 'subscription' ? { referenceId: userRecord.id } : {}),
+    };
     const session = await this.providerCall('checkout', () =>
-      this.client.checkout.sessions.create({
-        mode: 'subscription',
-        customer: customerId,
-        line_items: [{ price: priceId, quantity: 1 }],
-        client_reference_id: input.userId,
-        locale: toStripeLocale(locale),
-        success_url: getCheckoutSuccessUrl(locale),
-        cancel_url: getCheckoutCancelUrl(locale),
-        subscription_data: {
-          metadata: {
-            userId: input.userId,
-            referenceId: input.userId,
-          },
-        },
-      }),
+      this.client.checkout.sessions.create(
+        plan.kind === 'lifetime'
+          ? {
+              mode: 'payment',
+              customer: customerId,
+              line_items: [{ price: priceId, quantity: 1 }],
+              client_reference_id: userRecord.id,
+              locale: toStripeLocale(locale),
+              success_url: getCheckoutSuccessUrl(locale),
+              cancel_url: getCheckoutCancelUrl(locale),
+              metadata,
+              payment_intent_data: { metadata },
+            }
+          : {
+              mode: 'subscription',
+              customer: customerId,
+              line_items: [{ price: priceId, quantity: 1 }],
+              client_reference_id: userRecord.id,
+              locale: toStripeLocale(locale),
+              success_url: getCheckoutSuccessUrl(locale),
+              cancel_url: getCheckoutCancelUrl(locale),
+              subscription_data: { metadata },
+            },
+      ),
     );
 
     if (!session.url) {
@@ -128,6 +157,12 @@ export class StripeBillingProvider implements BillingClient {
   }
 
   async getActivePlan(input: UserBillingInput) {
+    const lifetimePurchase = await getActiveLifetimePurchaseForUser(input.userId);
+
+    if (lifetimePurchase) {
+      return { planId: 'lifetime', source: 'lifetime' as const };
+    }
+
     const subscriptions = await this.listSubscriptions(input);
     const activeSubscription = subscriptions.find(
       (candidate) => candidate.status === 'active' || candidate.status === 'trialing',
@@ -234,14 +269,12 @@ export class StripeBillingProvider implements BillingClient {
 }
 
 function getCheckoutPlan(planId: string) {
-  if (!checkoutPlanIds.has(planId)) {
-    throw new Error('Only the Catalog pro-monthly and pro-yearly plans support checkout.');
-  }
-
   const plan = getCatalogPlan(planId);
 
-  if (plan?.kind !== 'subscription') {
-    throw new Error(`Catalog plan "${planId}" is not a subscription plan.`);
+  if (plan?.kind !== 'subscription' && plan?.kind !== 'lifetime') {
+    throw new Error(
+      'Only the Catalog pro-monthly, pro-yearly, and lifetime plans support checkout.',
+    );
   }
 
   return plan;

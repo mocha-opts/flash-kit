@@ -5,6 +5,7 @@ import {
   ActiveSubscriptionExistsError,
   BillingEmailVerificationRequiredError,
   BillingUnavailableError,
+  LifetimePurchaseExistsError,
 } from '@repo/billing/types';
 import { getLocalizedPathname } from '@repo/i18n/navigation';
 import { revalidatePath } from 'next/cache';
@@ -19,7 +20,7 @@ import {
   subscriptionMutationSchema,
 } from '../_schemas/billing.schema';
 
-/** Starts only a recurring catalog checkout with the authenticated user context. */
+/** Starts a supported catalog checkout with the authenticated user context. */
 export const createCheckoutAction = authenticatedAction
   .inputSchema(checkoutSchema)
   .action(async ({ ctx, parsedInput }) => {
@@ -121,6 +122,7 @@ function revalidateBillingPath(locale: Parameters<typeof getLocalizedPathname>[0
 type BillingActionErrorKind =
   | 'activeSubscriptionExists'
   | 'billingEmailVerificationRequired'
+  | 'lifetimePurchaseExists'
   | 'billingUnavailable';
 
 async function getBillingActionError(
@@ -139,6 +141,10 @@ function getBillingActionErrorKind(error: unknown): BillingActionErrorKind | nul
 
   if (error instanceof BillingEmailVerificationRequiredError) {
     return 'billingEmailVerificationRequired';
+  }
+
+  if (error instanceof LifetimePurchaseExistsError) {
+    return 'lifetimePurchaseExists';
   }
 
   if (error instanceof BillingUnavailableError) {

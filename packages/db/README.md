@@ -3,8 +3,9 @@
 ## Responsibility and non-goals
 
 `@repo/db` owns the postgres.js/Drizzle client boundary, schema exports, migrations, grouped
-query entry points, and database test helpers. T03 provides the process-wide default client,
-isolated client creation, transaction support, and the Better Auth core schema and migration.
+query entry points, and database test helpers. It provides the process-wide default client,
+isolated client creation, transaction support, Better Auth core schema, and the PII-free billing
+Event ledger plus minimal user-owned Purchase persistence boundary.
 
 It does not own Auth or Billing workflows, run migrations during application startup, or
 implement a generic repository layer. The removable Project example lives in the `example`
@@ -25,7 +26,7 @@ SDKs, and app internals. Auth may depend on DB; DB must never reverse that depen
 | `@repo/db/client` | `src/client/index.ts` | Default/isolated Drizzle clients and transaction helpers. |
 | `@repo/db/schema` | `src/schema/index.ts` | Server-only Better Auth and removable custom schema exports. |
 | `@repo/db/queries/users` | `src/queries/users/index.ts` | User-scoped Better Auth profile/session queries and the explicit Admin user-list query boundary. |
-| `@repo/db/queries/billing` | `src/queries/billing/index.ts` | Minimal Billing identity and Stripe customer-id query boundary; no Billing workflow. |
+| `@repo/db/queries/billing` | `src/queries/billing/index.ts` | Billing identity plus atomic Purchase/Event persistence primitives; no Billing workflow. |
 | `@repo/db/queries/example` | `src/queries/example/index.ts` | User-scoped Project CRUD queries. |
 | `@repo/db/testing` | `src/testing/index.ts` | Test-only database context boundary. |
 
@@ -62,7 +63,49 @@ add table-per-class repositories. Production code must not import `@repo/db/test
 Every runtime export is server-only. The default client is a Node-process singleton configured
 by `DATABASE_URL` and `DATABASE_POOL_MAX`, with prepared statements disabled for transaction
 pooler compatibility. User-scoped queries must include a trusted `userId` predicate. DB exposes
-transaction mechanics only; atomic credit and billing workflows belong to `@repo/billing`.
+transaction mechanics and small feature queries only; atomic credit and billing workflows belong
+to `@repo/billing`.
+
+### Billing Purchase/Event query boundary
+
+`@repo/db/queries/billing` exposes the database primitives used by `@repo/billing` to compose a
+webhook transaction. The provider adapter first calls `upsertBillingEvent(db, input)` in a short
+operation, then calls `claimBillingEvent(transaction, identity)` inside the business transaction.
+The claim locks the row and returns `shouldProcess: false` for `processed` or `ignored` events.
+
+```ts
+await upsertBillingEvent(db, {
+  provider: 'stripe',
+  providerEventId: event.id,
+  eventType: event.type,
+});
+
+await withTransaction(db, async (transaction) => {
+  const claim = await claimBillingEvent(transaction, {
+    provider: 'stripe',
+    providerEventId: event.id,
+  });
+
+  if (!claim.shouldProcess) return;
+
+  const result = await insertBillingPurchase(transaction, purchaseInput);
+  if (result.inserted) {
+    // Granting a Lifetime/Credit entitlement belongs to @repo/billing.
+  }
+
+  await markBillingEventProcessed(transaction, claim.event.id);
+});
+```
+
+`markBillingEventProcessed`/`markBillingEventIgnored` must be called in the same transaction as
+business writes. If that transaction fails, callers can use
+`markBillingEventFailed(db, { provider, providerEventId, errorCode, errorMessage })` in a short
+independent operation before rethrowing. The failure API accepts only a bounded, normalized error
+category/message; it does not accept raw payloads, Error objects, stack traces, or user fields.
+Callers must pass a safe, non-PII message. `insertBillingPurchase` relies on the unique
+`(provider, provider_order_id)` index and returns `inserted: false` for duplicate orders.
+`getActiveLifetimePurchaseForUser` returns only a paid Lifetime purchase; refunds and disputes do
+not grant an Active Plan.
 
 ### Billing identity query boundary
 

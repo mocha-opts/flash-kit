@@ -44,7 +44,8 @@
     "generic": "暂时无法完成此请求，请稍后再试。",
     "activeSubscriptionExists": "你的账户已经有一个有效订阅。",
     "billingEmailVerificationRequired": "开始结账前，请先验证邮箱。",
-    "billingUnavailable": "计费服务暂时不可用，请稍后再试。"
+    "billingUnavailable": "计费服务暂时不可用，请稍后再试。",
+    "lifetimePurchaseExists": "你的账户已经拥有终身版权限。"
   },
   "billing": {
     "eyebrow": "私有区域 / 计费",
@@ -71,12 +72,21 @@
       "title": "服务能力",
       "description": "这里显示当前部署实际提供的计费能力。",
       "checkout": "周期性结账",
+      "lifetimeCheckout": "终身版结账",
       "customerPortal": "客户门户",
       "cancelSubscription": "取消订阅",
       "restoreSubscription": "恢复订阅",
       "available": "可用",
       "unavailable": "不可用",
       "summary": "{count} / {total} 项可用"
+    },
+    "lifetime": {
+      "eyebrow": "终身版权限",
+      "title": "终身版",
+      "description": "一次性购买后，持续拥有产品权限。",
+      "status": "状态",
+      "active": "已生效",
+      "inactive": "尚未购买"
     },
     "plans": {
       "free": "免费",
@@ -113,6 +123,10 @@
       "checkoutMonthlyPending": "正在打开月付结账……",
       "checkoutYearly": "选择年付",
       "checkoutYearlyPending": "正在打开年付结账……",
+      "checkoutLifetime": "购买终身版",
+      "checkoutLifetimePending": "正在打开终身版结账……",
+      "lifetimeTitle": "终身版权限",
+      "lifetimeDescription": "一次性购买，持续拥有产品权限。",
       "portal": "打开计费门户",
       "portalPending": "正在打开计费门户……",
       "cancel": "周期结束后取消",

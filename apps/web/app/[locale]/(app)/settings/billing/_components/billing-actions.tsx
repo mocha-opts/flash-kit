@@ -26,11 +26,15 @@ export type BillingActionsLabels = {
   readonly cancel: string;
   readonly cancelPending: string;
   readonly checkoutDescription: string;
+  readonly checkoutLifetime: string;
+  readonly checkoutLifetimePending: string;
   readonly checkoutMonthly: string;
   readonly checkoutMonthlyPending: string;
   readonly checkoutTitle: string;
   readonly checkoutYearly: string;
   readonly checkoutYearlyPending: string;
+  readonly lifetimeDescription: string;
+  readonly lifetimeTitle: string;
   readonly manageDescription: string;
   readonly manageTitle: string;
   readonly portal: string;
@@ -43,6 +47,7 @@ export type BillingActionsLabels = {
 type BillingActionsProps = {
   readonly capabilities: BillingCapabilities;
   readonly labels: BillingActionsLabels;
+  readonly lifetimeActive: boolean;
   readonly subscriptionId: BillingSubscription['id'] | null;
   readonly subscriptionStatus: BillingSubscription['status'] | null;
   readonly cancelAtPeriodEnd: boolean;
@@ -52,6 +57,7 @@ type BillingActionsProps = {
 export function BillingActions({
   capabilities,
   cancelAtPeriodEnd,
+  lifetimeActive,
   labels,
   subscriptionId,
   subscriptionStatus,
@@ -61,7 +67,9 @@ export function BillingActions({
   const [feedback, setFeedback] = useState<Feedback>(null);
   const hasActiveSubscription =
     subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
-  const showCheckout = capabilities.checkout && !hasActiveSubscription;
+  const showSubscriptionCheckout =
+    capabilities.checkout && !lifetimeActive && !hasActiveSubscription;
+  const showLifetimeCheckout = capabilities.lifetimeCheckout && !lifetimeActive;
   const showPortal = capabilities.customerPortal && subscriptionId !== null;
   const showCancel =
     capabilities.cancelSubscription &&
@@ -70,7 +78,8 @@ export function BillingActions({
     !cancelAtPeriodEnd;
   const showRestore =
     capabilities.restoreSubscription && subscriptionId !== null && cancelAtPeriodEnd;
-  const hasActions = showCheckout || showPortal || showCancel || showRestore;
+  const hasActions =
+    showSubscriptionCheckout || showLifetimeCheckout || showPortal || showCancel || showRestore;
 
   if (!hasActions) {
     return null;
@@ -124,7 +133,7 @@ export function BillingActions({
         <p className="mt-3 text-sm leading-6 text-muted-foreground">{labels.manageDescription}</p>
       </div>
 
-      {showCheckout ? (
+      {showSubscriptionCheckout ? (
         <div className="mt-8 grid gap-4 border-t border-border pt-6 sm:grid-cols-2">
           <div className="min-w-0">
             <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">
@@ -162,6 +171,36 @@ export function BillingActions({
               type="button"
             >
               {pendingAction === 'checkout' ? labels.checkoutYearlyPending : labels.checkoutYearly}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {showLifetimeCheckout ? (
+        <div className="mt-8 grid gap-4 border-t border-border pt-6 sm:grid-cols-2">
+          <div className="min-w-0">
+            <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">
+              {labels.lifetimeTitle}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{labels.lifetimeDescription}</p>
+          </div>
+          <div className="flex min-w-0 flex-wrap gap-3 sm:justify-end sm:self-end">
+            <button
+              aria-label={
+                pendingAction === 'checkout'
+                  ? labels.checkoutLifetimePending
+                  : labels.checkoutLifetime
+              }
+              className={buttonVariants({ size: 'sm' })}
+              disabled={pendingAction !== null}
+              onClick={() =>
+                void runAction('checkout', () => createCheckoutAction({ planId: 'lifetime' }))
+              }
+              type="button"
+            >
+              {pendingAction === 'checkout'
+                ? labels.checkoutLifetimePending
+                : labels.checkoutLifetime}
             </button>
           </div>
         </div>

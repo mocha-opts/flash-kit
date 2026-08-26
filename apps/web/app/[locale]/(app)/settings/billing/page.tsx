@@ -79,6 +79,31 @@ export default async function BillingPage({ params }: BillingPageProps) {
       </section>
 
       <section
+        aria-labelledby="lifetime-title"
+        className="mt-12 border-y border-border py-8 sm:mt-16 sm:py-10"
+      >
+        <div className="max-w-2xl">
+          <p className="font-mono text-xs uppercase tracking-[0.14em] text-muted-foreground">
+            {t('lifetime.eyebrow')}
+          </p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-[-0.03em]" id="lifetime-title">
+            {t('lifetime.title')}
+          </h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            {t('lifetime.description')}
+          </p>
+        </div>
+        <dl className="mt-8 border-t border-border pt-6">
+          <DetailEntry
+            label={t('lifetime.status')}
+            value={
+              data.activePlan.source === 'lifetime' ? t('lifetime.active') : t('lifetime.inactive')
+            }
+          />
+        </dl>
+      </section>
+
+      <section
         aria-labelledby="subscription-title"
         className="mt-12 border-y border-border py-8 sm:mt-16 sm:py-10"
       >
@@ -130,10 +155,15 @@ export default async function BillingPage({ params }: BillingPageProps) {
             {t('capabilities.description')}
           </p>
         </div>
-        <ul className="mt-8 grid gap-3 border-t border-border pt-6 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="mt-8 grid gap-3 border-t border-border pt-6 sm:grid-cols-2 lg:grid-cols-5">
           <CapabilityEntry
             label={t('capabilities.checkout')}
             enabled={data.capabilities.checkout}
+            t={t}
+          />
+          <CapabilityEntry
+            label={t('capabilities.lifetimeCheckout')}
+            enabled={data.capabilities.lifetimeCheckout}
             t={t}
           />
           <CapabilityEntry
@@ -158,6 +188,7 @@ export default async function BillingPage({ params }: BillingPageProps) {
         cancelAtPeriodEnd={subscription?.cancelAtPeriodEnd ?? false}
         capabilities={data.capabilities}
         labels={getActionLabels(t)}
+        lifetimeActive={data.activePlan.source === 'lifetime'}
         subscriptionId={subscription?.id ?? null}
         subscriptionStatus={subscriptionStatus}
       />
@@ -288,11 +319,15 @@ function getActionLabels(t: BillingTranslations): BillingActionsLabels {
     cancel: t('actions.cancel'),
     cancelPending: t('actions.cancelPending'),
     checkoutDescription: t('actions.checkoutDescription'),
+    checkoutLifetime: t('actions.checkoutLifetime'),
+    checkoutLifetimePending: t('actions.checkoutLifetimePending'),
     checkoutMonthly: t('actions.checkoutMonthly'),
     checkoutMonthlyPending: t('actions.checkoutMonthlyPending'),
     checkoutTitle: t('actions.checkoutTitle'),
     checkoutYearly: t('actions.checkoutYearly'),
     checkoutYearlyPending: t('actions.checkoutYearlyPending'),
+    lifetimeDescription: t('actions.lifetimeDescription'),
+    lifetimeTitle: t('actions.lifetimeTitle'),
     manageDescription: t('actions.manageDescription'),
     manageTitle: t('actions.manageTitle'),
     portal: t('actions.portal'),

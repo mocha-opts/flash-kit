@@ -7,6 +7,7 @@ import { getCatalogPlan } from '#billing-config/index';
 import { getStripePriceId } from '#internal/catalog-pricing';
 import { getBillingReturnUrl } from '#internal/trusted-return-urls';
 import { createPolarClient } from '#providers/polar/polar-client';
+import { handleStripeBillingEvent } from '#providers/stripe/hooks/on-order-paid';
 import { createStripeClient } from '#providers/stripe/stripe-client';
 
 /**
@@ -38,6 +39,7 @@ function createStripeBillingPlugin() {
       requireEmailVerification: true,
       authorizeReference: async ({ user, referenceId }) => referenceId === user.id,
     },
+    onEvent: handleStripeBillingEvent,
   });
 }
 

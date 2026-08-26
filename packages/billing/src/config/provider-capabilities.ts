@@ -14,12 +14,14 @@ type BillingCatalogIdRequirements = {
 export const billingProviderCapabilities = {
   stripe: {
     checkout: true,
+    lifetimeCheckout: true,
     customerPortal: true,
     cancelSubscription: true,
     restoreSubscription: true,
   },
   polar: {
     checkout: true,
+    lifetimeCheckout: false,
     customerPortal: true,
     cancelSubscription: true,
     restoreSubscription: true,

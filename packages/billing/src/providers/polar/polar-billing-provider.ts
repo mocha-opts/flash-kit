@@ -1,6 +1,10 @@
 import { HTTPClientError } from '@polar-sh/sdk/models/errors/httpclienterrors.js';
 import { PolarError } from '@polar-sh/sdk/models/errors/polarerror.js';
-import { type BillingUserRecord, getBillingUser } from '@repo/db/queries/billing';
+import {
+  type BillingUserRecord,
+  getActiveLifetimePurchaseForUser,
+  getBillingUser,
+} from '@repo/db/queries/billing';
 
 import { getCatalogPlan } from '#billing-config/index';
 import { getBillingProviderCapabilities } from '#config/provider-capabilities';
@@ -148,6 +152,12 @@ export class PolarBillingProvider implements BillingClient {
   }
 
   async getActivePlan(input: UserBillingInput) {
+    const lifetimePurchase = await getActiveLifetimePurchaseForUser(input.userId);
+
+    if (lifetimePurchase) {
+      return { planId: 'lifetime', source: 'lifetime' as const };
+    }
+
     const subscriptions = await this.listSubscriptions(input);
     const activeSubscription = subscriptions.find(isActiveOrTrialing);
 

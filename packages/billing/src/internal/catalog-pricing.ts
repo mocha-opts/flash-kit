@@ -1,5 +1,17 @@
 import { billingCatalog, getCatalogPlan } from '#billing-config/index';
 
+/** Reads the configured Stripe product id from the provider-neutral Catalog. */
+export function getStripeProductId(planId: string): string {
+  const plan = getCatalogPlan(planId);
+  const productId = plan?.kind !== 'free' ? plan?.providers.stripe?.productId : undefined;
+
+  if (!productId) {
+    throw new Error(`Catalog plan "${planId}" is missing a Stripe product ID.`);
+  }
+
+  return productId;
+}
+
 /** Reads the configured Stripe price id from the provider-neutral Catalog. */
 export function getStripePriceId(planId: string): string {
   const plan = getCatalogPlan(planId);

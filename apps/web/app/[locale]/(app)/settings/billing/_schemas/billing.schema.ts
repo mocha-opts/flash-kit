@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
-/** Only recurring catalog plans can start a subscription checkout. */
+/** Only the explicitly supported Catalog checkout plans can be requested. */
 export const checkoutSchema = z
   .object({
-    planId: z.enum(['pro-monthly', 'pro-yearly']),
+    planId: z.enum(['pro-monthly', 'pro-yearly', 'lifetime']),
   })
   .strict();
 

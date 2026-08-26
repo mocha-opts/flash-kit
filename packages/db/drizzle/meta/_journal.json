@@ -22,6 +22,13 @@
       "when": 1787673768402,
       "tag": "0002_yellow_fabian_cortez",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787733739316,
+      "tag": "0003_careless_raider",
+      "breakpoints": true
     }
   ]
 }

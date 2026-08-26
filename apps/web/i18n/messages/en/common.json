@@ -44,7 +44,8 @@
     "generic": "We could not complete this request. Please try again.",
     "activeSubscriptionExists": "You already have an active subscription.",
     "billingEmailVerificationRequired": "Verify your email before starting checkout.",
-    "billingUnavailable": "Billing is temporarily unavailable. Please try again later."
+    "billingUnavailable": "Billing is temporarily unavailable. Please try again later.",
+    "lifetimePurchaseExists": "Your account already owns Lifetime access."
   },
   "billing": {
     "eyebrow": "PRIVATE / BILLING",
@@ -71,12 +72,21 @@
       "title": "Provider capability",
       "description": "Actions shown here are the capabilities currently available to this deployment.",
       "checkout": "Recurring checkout",
+      "lifetimeCheckout": "Lifetime checkout",
       "customerPortal": "Customer portal",
       "cancelSubscription": "Cancel subscription",
       "restoreSubscription": "Restore subscription",
       "available": "Available",
       "unavailable": "Unavailable",
       "summary": "{count} of {total} available"
+    },
+    "lifetime": {
+      "eyebrow": "LIFETIME ACCESS",
+      "title": "Lifetime",
+      "description": "A one-time purchase grants permanent access to the product.",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Not purchased"
     },
     "plans": {
       "free": "Free",
@@ -113,6 +123,10 @@
       "checkoutMonthlyPending": "Opening monthly checkout…",
       "checkoutYearly": "Choose yearly",
       "checkoutYearlyPending": "Opening yearly checkout…",
+      "checkoutLifetime": "Buy Lifetime",
+      "checkoutLifetimePending": "Opening Lifetime checkout…",
+      "lifetimeTitle": "Lifetime access",
+      "lifetimeDescription": "Make a one-time purchase and keep permanent access to the product.",
       "portal": "Open billing portal",
       "portalPending": "Opening billing portal…",
       "cancel": "Cancel at period end",

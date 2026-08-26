@@ -26,6 +26,7 @@ type SafeErrorKind =
   | 'activeSubscriptionExists'
   | 'billingEmailVerificationRequired'
   | 'billingUnavailable'
+  | 'lifetimePurchaseExists'
   | 'forbidden'
   | 'generic'
   | 'recentSession'
@@ -92,6 +93,8 @@ export async function getSafeActionError(
         return translations('billingEmailVerificationRequired');
       case 'billingUnavailable':
         return translations('billingUnavailable');
+      case 'lifetimePurchaseExists':
+        return translations('lifetimePurchaseExists');
       case 'unauthenticated':
         return translations('unauthenticated');
       case 'recentSession':
