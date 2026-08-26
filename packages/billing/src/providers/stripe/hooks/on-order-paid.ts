@@ -1,17 +1,11 @@
-import { db, withTransaction } from '@repo/db/client';
-import {
-  claimBillingEvent,
-  getBillingUser,
-  insertBillingPurchase,
-  markBillingEventFailed,
-  markBillingEventIgnored,
-  markBillingEventProcessed,
-  type UpsertBillingEventInput,
-  upsertBillingEvent,
-} from '@repo/db/queries/billing';
+import { getBillingUser } from '@repo/db/queries/billing';
 import type Stripe from 'stripe';
 
 import { getStripePriceId, getStripeProductId } from '#internal/catalog-pricing';
+import {
+  type PurchaseEventResolution,
+  processPurchaseEvent,
+} from '#internal/process-purchase-event';
 import { createStripeClient } from '#providers/stripe/stripe-client';
 
 const lifetimeCheckoutEventTypes = new Set([
@@ -56,45 +50,31 @@ export async function handleStripeBillingEvent(event: Stripe.Event): Promise<voi
     return;
   }
 
-  const identity: UpsertBillingEventInput = {
-    provider: 'stripe',
-    providerEventId: event.id,
-    eventType,
-  };
+  await processPurchaseEvent({
+    identity: {
+      provider: 'stripe',
+      providerEventId: event.id,
+      eventType,
+    },
+    resolve: async () => resolveStripePurchase(eventType, session),
+    failure: {
+      code: lifetimeProcessingErrorCode,
+      message: lifetimeProcessingErrorMessage,
+    },
+  });
+}
 
-  try {
-    const eventRecord = await upsertBillingEvent(db, identity);
-
-    if (eventRecord.status === 'processed' || eventRecord.status === 'ignored') {
-      return;
-    }
-
-    if (eventType === 'checkout.session.async_payment_failed') {
-      await ignoreBillingEvent(identity);
-      return;
-    }
-
-    const facts = await getLifetimePurchaseFacts(session);
-
-    if (!facts) {
-      await ignoreBillingEvent(identity);
-      return;
-    }
-
-    await withTransaction(db, async (transaction) => {
-      const claim = await claimBillingEvent(transaction, identity);
-
-      if (!claim.shouldProcess) {
-        return;
-      }
-
-      await insertBillingPurchase(transaction, facts);
-      await markBillingEventProcessed(transaction, claim.event.id);
-    });
-  } catch (error) {
-    await markFailure(identity);
-    throw new LifetimeCheckoutProcessingError({ cause: error });
+async function resolveStripePurchase(
+  eventType: LifetimeCheckoutEventType,
+  session: Stripe.Checkout.Session,
+): Promise<PurchaseEventResolution> {
+  if (eventType === 'checkout.session.async_payment_failed') {
+    return { kind: 'ignored' };
   }
+
+  const purchase = await getLifetimePurchaseFacts(session);
+
+  return purchase ? { kind: 'paid', purchase } : { kind: 'ignored' };
 }
 
 function toLifetimeCheckoutEventType(value: string): LifetimeCheckoutEventType | null {
@@ -335,36 +315,6 @@ function toDate(value: number): Date | null {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-async function ignoreBillingEvent(identity: UpsertBillingEventInput): Promise<void> {
-  await withTransaction(db, async (transaction) => {
-    const claim = await claimBillingEvent(transaction, identity);
-
-    if (claim.shouldProcess) {
-      await markBillingEventIgnored(transaction, claim.event.id);
-    }
-  });
-}
-
-async function markFailure(identity: UpsertBillingEventInput): Promise<void> {
-  try {
-    await markBillingEventFailed(db, {
-      ...identity,
-      errorCode: lifetimeProcessingErrorCode,
-      errorMessage: lifetimeProcessingErrorMessage,
-    });
-  } catch {
-    // Preserve the original failure so Better Auth returns a non-2xx response.
-  }
-}
-
 class LifetimeCheckoutValidationError extends Error {
   override readonly name = 'LifetimeCheckoutValidationError';
-}
-
-class LifetimeCheckoutProcessingError extends Error {
-  override readonly name = 'LifetimeCheckoutProcessingError';
-
-  constructor(options: ErrorOptions) {
-    super(lifetimeProcessingErrorMessage, options);
-  }
 }

@@ -6,6 +6,7 @@ import { getCatalogPlan } from '#billing-config/index';
 
 import { getStripePriceId } from '#internal/catalog-pricing';
 import { getBillingReturnUrl } from '#internal/trusted-return-urls';
+import { handlePolarOrderPaid } from '#providers/polar/hooks/on-order-paid';
 import { createPolarClient } from '#providers/polar/polar-client';
 import { handleStripeBillingEvent } from '#providers/stripe/hooks/on-order-paid';
 import { createStripeClient } from '#providers/stripe/stripe-client';
@@ -54,7 +55,10 @@ function createPolarBillingPlugin() {
     createCustomerOnSignUp: true,
     use: [
       portal({ returnUrl: getBillingReturnUrl('en') }),
-      webhooks({ secret: requirePolarWebhookSecret() }),
+      webhooks({
+        secret: requirePolarWebhookSecret(),
+        onOrderPaid: handlePolarOrderPaid,
+      }),
     ],
   });
 }

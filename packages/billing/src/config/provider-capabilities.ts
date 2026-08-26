@@ -21,7 +21,7 @@ export const billingProviderCapabilities = {
   },
   polar: {
     checkout: true,
-    lifetimeCheckout: false,
+    lifetimeCheckout: true,
     customerPortal: true,
     cancelSubscription: true,
     restoreSubscription: true,

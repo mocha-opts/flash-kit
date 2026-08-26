@@ -25,11 +25,12 @@ import {
   ActiveSubscriptionExistsError,
   BillingEmailVerificationRequiredError,
   BillingUnavailableError,
+  LifetimePurchaseExistsError,
 } from '#types';
 
 import { createPolarClient } from './polar-client';
 
-const checkoutPlanIds = new Set(['pro-monthly', 'pro-yearly']);
+const checkoutPlanIds = new Set(['pro-monthly', 'pro-yearly', 'lifetime']);
 const noRetries = { retries: { strategy: 'none' as const } };
 
 /** Internal sentinel used only to preserve a normal Free state for new Polar customers. */
@@ -62,16 +63,28 @@ export class PolarBillingProvider implements BillingClient {
       throw new BillingEmailVerificationRequiredError();
     }
 
-    const subscriptions = await this.listSubscriptions({ userId: userRecord.id });
-    if (subscriptions.some(isActiveOrTrialing)) {
-      throw new ActiveSubscriptionExistsError();
+    if (plan.kind === 'lifetime') {
+      const lifetimePurchase = await getActiveLifetimePurchaseForUser(userRecord.id);
+
+      if (lifetimePurchase) {
+        throw new LifetimePurchaseExistsError();
+      }
+    }
+
+    if (plan.kind === 'subscription') {
+      const subscriptions = await this.listSubscriptions({ userId: userRecord.id });
+
+      if (subscriptions.some(isActiveOrTrialing)) {
+        throw new ActiveSubscriptionExistsError();
+      }
     }
 
     const locale = input.locale ?? 'en';
+    const productId = getPolarProductId(plan.id);
     const session = await this.providerCall('checkout creation', () =>
       this.client.checkouts.create(
         {
-          products: [getPolarProductId(plan.id)],
+          products: [productId],
           externalCustomerId: userRecord.id,
           customerName: userRecord.name,
           customerEmail: userRecord.email,
@@ -80,7 +93,10 @@ export class PolarBillingProvider implements BillingClient {
           returnUrl: getBillingReturnUrl(locale),
           metadata: {
             userId: userRecord.id,
-            referenceId: userRecord.id,
+            planId: plan.id,
+            purchaseKind: plan.kind,
+            productId,
+            ...(plan.kind === 'subscription' ? { referenceId: userRecord.id } : {}),
           },
         },
         noRetries,
@@ -306,13 +322,15 @@ export class PolarBillingProvider implements BillingClient {
 
 function getCheckoutPlan(planId: string) {
   if (!checkoutPlanIds.has(planId)) {
-    throw new Error('Only the Catalog pro-monthly and pro-yearly plans support checkout.');
+    throw new Error(
+      'Only the Catalog pro-monthly, pro-yearly, and lifetime plans support checkout.',
+    );
   }
 
   const plan = getCatalogPlan(planId);
 
-  if (plan?.kind !== 'subscription') {
-    throw new Error(`Catalog plan "${planId}" is not a subscription plan.`);
+  if (plan?.kind !== 'subscription' && plan?.kind !== 'lifetime') {
+    throw new Error(`Catalog plan "${planId}" is not a subscription or Lifetime plan.`);
   }
 
   return plan;
