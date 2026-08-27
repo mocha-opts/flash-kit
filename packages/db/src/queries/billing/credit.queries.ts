@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
 
 import { type DatabaseClient, type DatabaseTransaction, db } from '#db/client/index';
 import { billingPurchase, creditAccount, creditTransaction } from '#db/schema/index';
@@ -45,6 +45,11 @@ export type InsertCreditTransactionInput = CreditTransactionReferenceInput & {
 export type SetCreditBalanceInput = {
   readonly userId: string;
   readonly balance: number;
+};
+
+export type DecrementCreditBalanceInput = {
+  readonly userId: string;
+  readonly amount: number;
 };
 
 /** Returns the current integer balance, using zero for a user without an account. */
@@ -173,6 +178,26 @@ export async function setCreditBalanceForUser(
     .update(creditAccount)
     .set({ balance: input.balance, updatedAt: new Date() })
     .where(eq(creditAccount.userId, input.userId))
+    .returning();
+
+  return rows[0] ?? null;
+}
+
+/**
+ * Atomically deducts a positive amount only when the trusted user's current
+ * balance can cover it. A null result means that no qualifying user row exists.
+ */
+export async function decrementCreditBalanceIfSufficientForUser(
+  transaction: DatabaseTransaction,
+  input: DecrementCreditBalanceInput,
+): Promise<CreditAccountRecord | null> {
+  const rows = await transaction
+    .update(creditAccount)
+    .set({
+      balance: sql<number>`${creditAccount.balance} - ${input.amount}`,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(creditAccount.userId, input.userId), gte(creditAccount.balance, input.amount)))
     .returning();
 
   return rows[0] ?? null;

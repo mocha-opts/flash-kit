@@ -629,5 +629,53 @@
     "title": "A clear place to begin.",
     "welcome": "Welcome, {name}. Your private workspace is ready.",
     "signedInAs": "Signed in as"
+  },
+  "creditDemo": {
+    "eyebrow": "DEVELOPER EXAMPLE",
+    "title": "Consume credits safely.",
+    "description": "A removable, authenticated example for an atomic Credit consumption. The server owns the user identity, balance check, and idempotency reference.",
+    "backToBilling": "Back to billing",
+    "balanceLabel": "Current balance",
+    "balanceUnits": "credits available",
+    "idempotencyNote": "Submit the same request again with the same reference to see idempotent behavior: it is acknowledged without deducting the balance twice.",
+    "pendingNote": "While a request is pending, the action is disabled to prevent accidental duplicate submissions.",
+    "form": {
+      "eyebrow": "ATOMIC CONSUMPTION",
+      "title": "Try a Credit deduction",
+      "description": "Use a stable reference for a business operation. A successful request appends one consumption record and refreshes the authoritative balance.",
+      "defaultDescription": "Developer demo consumption",
+      "amountLabel": "Amount",
+      "amountHelp": "A positive whole number of credits.",
+      "referenceTypeLabel": "Reference type",
+      "referenceTypeHelp": "A lowercase stable operation name, such as demo_credit_consumption.",
+      "referenceIdLabel": "Reference ID",
+      "referenceIdHelp": "Keep this value to replay the same request idempotently.",
+      "descriptionLabel": "Reason",
+      "descriptionHelp": "A short human-readable reason recorded in the ledger.",
+      "submit": "Consume credits",
+      "pending": "Consuming credits…",
+      "success": "Credits consumed. Current balance: {balance}.",
+      "alreadyConsumed": "This reference was already consumed; the balance remains {balance}.",
+      "error": "We could not consume credits. Please check the fields and try again.",
+      "validation": {
+        "amountInvalid": "Enter a whole number of credits.",
+        "amountRequired": "Enter at least 1 credit.",
+        "amountTooLarge": "The amount is too large.",
+        "referenceTypeInvalid": "Use lowercase letters, numbers, underscores, colons, or hyphens.",
+        "referenceTypeRequired": "Enter a reference type.",
+        "referenceTypeTooLong": "Use 100 characters or fewer.",
+        "referenceTypeReserved": "This reference type is reserved by Billing.",
+        "referenceIdInvalid": "Enter a valid reference ID.",
+        "referenceIdRequired": "Enter a reference ID.",
+        "referenceIdTooLong": "Use 255 characters or fewer.",
+        "descriptionInvalid": "Enter a valid reason.",
+        "descriptionRequired": "Enter a reason.",
+        "descriptionTooLong": "Use 500 characters or fewer."
+      }
+    },
+    "errors": {
+      "insufficientCredits": "Not enough credits. This request needs {required}, but only {available} are available.",
+      "referenceConflict": "This reference is already associated with a different consumption. Use a new reference ID."
+    }
   }
 }

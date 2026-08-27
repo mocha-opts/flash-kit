@@ -1,14 +1,17 @@
 import 'server-only';
 
 import type { BetterAuthPlugin } from '@better-auth/core';
+import { db, withTransaction } from '@repo/db/client';
 import { getCreditBalanceForUser, listCreditTransactionsForUser } from '@repo/db/queries/billing';
 
 import { createBillingPlugin } from '#better-auth/create-billing-plugin';
 import { createBillingClient } from '#billing/create-billing-client';
+import { consumeCreditsInputSchema, consumeCreditsInTransaction } from '#credits/consume-credits';
 import type {
   ActivePlan,
   BillingClient,
   ConsumeCreditsInput,
+  ConsumeCreditsResult,
   CreditBalance,
   CreditTransactionsInput,
   CreditTransactionsPage,
@@ -91,10 +94,19 @@ export async function listCreditTransactions(
   };
 }
 
-/** Stable atomic credit-consumption boundary reserved for a later billing ticket. */
-export async function consumeCredits(_input: ConsumeCreditsInput): Promise<never> {
-  throw new Error('Credit operations are not implemented until a later billing ticket.');
+/**
+ * Atomically consumes Credits for a trusted user and idempotent business
+ * reference. This is a server API, not a public HTTP endpoint.
+ */
+export async function consumeCredits(input: ConsumeCreditsInput): Promise<ConsumeCreditsResult> {
+  const normalized = consumeCreditsInputSchema.parse(input);
+
+  return await withTransaction(db, async (transaction) =>
+    consumeCreditsInTransaction(transaction, normalized),
+  );
 }
+
+export { consumeCreditsInputSchema };
 
 function normalizePage(page: number | undefined): number {
   if (page === undefined) {

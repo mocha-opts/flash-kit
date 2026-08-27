@@ -11,6 +11,8 @@ export {
   type CreditTransactionReferenceInput,
   type CreditTransactionsPageRecord,
   type CreditTransactionWithPurchase,
+  type DecrementCreditBalanceInput,
+  decrementCreditBalanceIfSufficientForUser,
   ensureCreditAccountForUser,
   findCreditTransactionByReferenceForUser,
   findPaidCreditPackPurchaseForUser,

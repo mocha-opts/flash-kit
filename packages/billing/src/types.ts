@@ -177,12 +177,20 @@ export type CreditTransactionsInput = UserBillingInput & {
   readonly limit?: number;
 };
 
-/** Input shape reserved for the later atomic credit-consumption workflow. */
+/** Trusted server-side input for one idempotent Credit consumption. */
 export type ConsumeCreditsInput = UserBillingInput & {
   readonly amount: number;
   readonly description: string;
   readonly referenceType: string;
   readonly referenceId: string;
+};
+
+/** Provider-neutral result of a new or idempotently replayed Credit consumption. */
+export type ConsumeCreditsResult = {
+  readonly status: 'consumed' | 'already_consumed';
+  readonly transactionId: string;
+  readonly amount: number;
+  readonly balanceAfter: number;
 };
 
 /** Provider-neutral subscription status normalized for application use. */
@@ -229,6 +237,28 @@ export class LifetimePurchaseExistsError extends Error {
   override readonly name = 'LifetimePurchaseExistsError';
 
   constructor(message = 'The user already owns a Lifetime purchase.') {
+    super(message);
+  }
+}
+
+/** A normal Credit consumption cannot make the current balance negative. */
+export class InsufficientCreditsError extends Error {
+  override readonly name = 'InsufficientCreditsError';
+
+  constructor(
+    readonly required: number,
+    readonly available: number,
+    message = 'The credit balance is insufficient for this request.',
+  ) {
+    super(message);
+  }
+}
+
+/** The same idempotency reference cannot describe two different consumptions. */
+export class CreditConsumptionConflictError extends Error {
+  override readonly name = 'CreditConsumptionConflictError';
+
+  constructor(message = 'The credit consumption reference is already in use.') {
     super(message);
   }
 }

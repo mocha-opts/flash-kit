@@ -62,7 +62,7 @@ implementation-only dependencies and are never re-exported.
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary names, including Credit Balance and History reads. |
+| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary, including Credit reads and atomic consumption. |
 | `@repo/billing/config` | `src/config/index.ts` | Provider and catalog configuration type boundary. |
 | `@repo/billing/types` | `src/types.ts` | Provider-neutral public billing types. |
 | `@repo/billing/components` | `src/components.ts` | Billing component type boundary. |
@@ -86,10 +86,21 @@ export function Pricing({ action }: { readonly action: ReactNode }) {
 Server actions and loaders use the provider-neutral credit reads:
 
 ```ts
-import { getCreditBalance, listCreditTransactions } from '@repo/billing/server';
+import {
+  consumeCredits,
+  getCreditBalance,
+  listCreditTransactions,
+} from '@repo/billing/server';
 
 const balance = await getCreditBalance({ userId });
 const history = await listCreditTransactions({ userId, page: 1, limit: 50 });
+const consumption = await consumeCredits({
+  userId,
+  amount: 1,
+  description: 'Generate an image',
+  referenceType: 'image_generation',
+  referenceId: imageId,
+});
 ```
 
 The Catalog is assembled once in `config/billing-catalog.ts` and parsed again
@@ -144,8 +155,13 @@ Refunds and disputes are handled by later billing work.
 `getCreditBalance` returns `{ userId, balance }`. `listCreditTransactions`
 defaults to page 1 and limit 50, accepts at most 100 rows, and returns
 serializable ISO timestamps plus a minimal related Purchase summary (or null).
-Credit reads are user-scoped server calls; `consumeCredits` remains a T14
-placeholder and is not an HTTP route.
+`consumeCredits` validates its trusted server input with Zod, runs the
+user-scoped conditional balance update and append-only ledger insert in one
+transaction, and returns `consumed` or `already_consumed`. A repeated reference
+must match the original amount and description; otherwise it raises
+`CreditConsumptionConflictError`. Insufficient balance raises
+`InsufficientCreditsError`. Credit consumption is not exposed as a public HTTP
+route.
 
 Billing actions receive a trusted user id
 from an authenticated server action and a constrained locale, never a client

@@ -629,5 +629,53 @@
     "title": "从清晰的地方开始。",
     "welcome": "欢迎，{name}。你的私有工作区已经准备好了。",
     "signedInAs": "当前登录账号"
+  },
+  "creditDemo": {
+    "eyebrow": "开发者示例",
+    "title": "安全地消费额度。",
+    "description": "这是一个可移除的受保护示例，用来演示原子 Credit 消费。用户身份、余额检查和幂等参考编号都由服务端负责。",
+    "backToBilling": "返回计费",
+    "balanceLabel": "当前余额",
+    "balanceUnits": "可用额度",
+    "idempotencyNote": "使用相同参考编号再次提交相同请求即可观察幂等行为：请求会被确认，但不会重复扣减余额。",
+    "pendingNote": "请求处理中会禁用操作，避免意外的重复提交。",
+    "form": {
+      "eyebrow": "原子消费",
+      "title": "试用一次额度扣减",
+      "description": "为一次业务操作使用稳定的参考编号。成功请求会追加一条消费记录，并刷新权威余额。",
+      "defaultDescription": "开发者示例消费",
+      "amountLabel": "扣减数量",
+      "amountHelp": "请输入正整数额度。",
+      "referenceTypeLabel": "参考类型",
+      "referenceTypeHelp": "使用小写的稳定操作名称，例如 demo_credit_consumption。",
+      "referenceIdLabel": "参考编号",
+      "referenceIdHelp": "保留此值即可幂等地重放同一个请求。",
+      "descriptionLabel": "原因",
+      "descriptionHelp": "会记录到台账中的简短可读原因。",
+      "submit": "消费额度",
+      "pending": "正在消费额度……",
+      "success": "额度已消费。当前余额：{balance}。",
+      "alreadyConsumed": "此参考编号已经消费过，余额仍为 {balance}。",
+      "error": "暂时无法消费额度，请检查字段后重试。",
+      "validation": {
+        "amountInvalid": "请输入正整数额度。",
+        "amountRequired": "请输入至少 1 点额度。",
+        "amountTooLarge": "扣减数量过大。",
+        "referenceTypeInvalid": "只能使用小写字母、数字、下划线、冒号或连字符。",
+        "referenceTypeRequired": "请输入参考类型。",
+        "referenceTypeTooLong": "不能超过 100 个字符。",
+        "referenceTypeReserved": "此参考类型由 Billing 保留。",
+        "referenceIdInvalid": "请输入有效的参考编号。",
+        "referenceIdRequired": "请输入参考编号。",
+        "referenceIdTooLong": "不能超过 255 个字符。",
+        "descriptionInvalid": "请输入有效的原因。",
+        "descriptionRequired": "请输入原因。",
+        "descriptionTooLong": "不能超过 500 个字符。"
+      }
+    },
+    "errors": {
+      "insufficientCredits": "额度不足。此请求需要 {required} 点，但当前只有 {available} 点。",
+      "referenceConflict": "此参考编号已关联其他消费，请使用新的参考编号。"
+    }
   }
 }
