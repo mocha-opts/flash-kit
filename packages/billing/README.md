@@ -150,7 +150,25 @@ exact Catalog Product/metadata/customer ownership, paid status, one-time product
 semantics, and a positive safe-integer `totalAmount` with lowercase three-letter
 `currency`. Credit metadata must parse to the exact positive integer captured at
 checkout; Stripe also requires the Session and PaymentIntent metadata to match.
-Refunds and disputes are handled by later billing work.
+Refunds and disputes use the provider-neutral `refundPurchase` and `disputePurchase` server
+functions. Provider webhook adapters should call the corresponding `*InTransaction` function when
+they already own the Billing Event transaction, so the Purchase status and any Credit compensation
+commit atomically with the event. A Lifetime refund or dispute removes the paid Purchase from
+Active Plan resolution. A Credit Pack dispute only marks the Purchase disputed; it does not remove
+Credits. A later full Credit Pack refund reads the historical positive purchase grant and appends
+one negative `refund` transaction with `referenceType = 'refund'` and `referenceId = purchase.id`.
+The purchase grant is never deleted or rewritten, consumed Credits may make the resulting balance
+negative, and duplicate refund/dispute deliveries are idempotent under the Purchase row lock and
+the Credit transaction reference unique constraint.
+`partialRefundPurchase` and its transaction variant only move `paid` or `disputed` Purchases to
+`partially_refunded`; they never append an automatic Credit adjustment. Repeated partial refunds
+are no-ops, `refunded` never downgrades, and a later full refund still reverses the complete
+historical Credit grant once. Dispute outcomes are normalized as `active | lost | won`: active/lost
+move an eligible Purchase to `disputed`, while won restores only `disputed` to `paid` and leaves a
+`refunded` Purchase refunded.
+These functions accept only one-time Purchase contexts; Subscription refund/dispute events remain
+owned by the official provider subscription state and must not be converted into local Purchase
+status changes.
 
 `getCreditBalance` returns `{ userId, balance }`. `listCreditTransactions`
 defaults to page 1 and limit 50, accepts at most 100 rows, and returns
@@ -161,7 +179,11 @@ transaction, and returns `consumed` or `already_consumed`. A repeated reference
 must match the original amount and description; otherwise it raises
 `CreditConsumptionConflictError`. Insufficient balance raises
 `InsufficientCreditsError`. Credit consumption is not exposed as a public HTTP
-route.
+route. Refund/dispute results are provider-neutral and expose `changed`, the
+final Purchase status, and (for Credit Pack refunds) the signed compensation
+transaction. `BillingPurchaseNotFoundError` is also used for a missing or
+cross-user provider order so the local ledger does not become an order-existence
+oracle.
 
 Billing actions receive a trusted user id
 from an authenticated server action and a constrained locale, never a client

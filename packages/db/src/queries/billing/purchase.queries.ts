@@ -12,6 +12,23 @@ import {
 
 export type BillingPurchaseRecord = typeof billingPurchase.$inferSelect;
 
+/** User-scoped provider order identity used to prevent cross-user mutation. */
+export type BillingPurchaseUserOrderInput = {
+  readonly userId: string;
+  readonly provider: BillingProvider;
+  readonly providerOrderId: string;
+};
+
+/** One guarded status transition performed while the purchase row is locked. */
+export type TransitionBillingPurchaseStatusInput = {
+  readonly userId: string;
+  readonly provider: BillingProvider;
+  readonly providerOrderId: string;
+  readonly purchaseId: string;
+  readonly currentStatus: BillingPurchaseStatus;
+  readonly nextStatus: BillingPurchaseStatus;
+};
+
 /** Input for inserting one provider-confirmed Lifetime or Credit Pack order. */
 export type InsertBillingPurchaseInput = {
   readonly userId: string;
@@ -32,6 +49,56 @@ export type InsertBillingPurchaseResult = {
   readonly purchase: BillingPurchaseRecord;
   readonly inserted: boolean;
 };
+
+/**
+ * Locks one Purchase in the trusted User/provider/order scope. A mismatched
+ * User is intentionally indistinguishable from a missing order.
+ */
+export async function lockBillingPurchaseForUserByProviderOrder(
+  transaction: DatabaseTransaction,
+  input: BillingPurchaseUserOrderInput,
+): Promise<BillingPurchaseRecord | null> {
+  const rows = await transaction
+    .select()
+    .from(billingPurchase)
+    .where(
+      and(
+        eq(billingPurchase.userId, input.userId),
+        eq(billingPurchase.provider, input.provider),
+        eq(billingPurchase.providerOrderId, input.providerOrderId),
+      ),
+    )
+    .for('update')
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+/**
+ * Atomically changes a Purchase status only when its expected status still
+ * matches. Callers normally lock the row first, then use this guard to make a
+ * stale transition a harmless null result instead of overwriting a newer one.
+ */
+export async function transitionBillingPurchaseStatus(
+  transaction: DatabaseTransaction,
+  input: TransitionBillingPurchaseStatusInput,
+): Promise<BillingPurchaseRecord | null> {
+  const rows = await transaction
+    .update(billingPurchase)
+    .set({ status: input.nextStatus, updatedAt: new Date() })
+    .where(
+      and(
+        eq(billingPurchase.userId, input.userId),
+        eq(billingPurchase.id, input.purchaseId),
+        eq(billingPurchase.status, input.currentStatus),
+        eq(billingPurchase.provider, input.provider),
+        eq(billingPurchase.providerOrderId, input.providerOrderId),
+      ),
+    )
+    .returning();
+
+  return rows[0] ?? null;
+}
 
 /**
  * Inserts a provider order exactly once inside the caller's transaction.

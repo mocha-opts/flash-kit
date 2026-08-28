@@ -255,6 +255,20 @@ function CreditSection({ balance, locale, page, t }: CreditSectionProps) {
             {formatInteger(balance.balance, locale)}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">{t('credits.units')}</p>
+          {balance.balance < 0 ? (
+            <div
+              aria-live="polite"
+              className="mt-5 border-l-2 border-destructive pl-4"
+              role="status"
+            >
+              <p className="text-sm font-medium text-destructive">
+                {t('credits.negativeBalance.title')}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {t('credits.negativeBalance.description')}
+              </p>
+            </div>
+          ) : null}
         </div>
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">

@@ -95,6 +95,10 @@
       "description": "Keep your prepaid generation balance and its append-only history in view.",
       "balanceLabel": "Available balance",
       "units": "credits available",
+      "negativeBalance": {
+        "title": "Refunded credits exceed the remaining balance.",
+        "description": "This accurate negative balance preserves your usage history. Credit-consuming features remain unavailable until the balance is positive again."
+      },
       "purchaseTitle": "Add more credits",
       "purchaseDescription": "Buy a 100-credit pack whenever you need more prepaid generation capacity. Credit checkout remains available with or without a subscription or Lifetime access.",
       "purchase": "Buy 100 credits",

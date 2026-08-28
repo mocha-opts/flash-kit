@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, sql } from 'drizzle-orm';
 
 import { type DatabaseClient, type DatabaseTransaction, db } from '#db/client/index';
 import { billingPurchase, creditAccount, creditTransaction } from '#db/schema/index';
@@ -14,6 +14,12 @@ export type CreditTransactionRecord = typeof creditTransaction.$inferSelect;
 export type CreditTransactionWithPurchase = {
   readonly transaction: CreditTransactionRecord;
   readonly purchase: BillingPurchaseRecord | null;
+};
+
+/** User/Purchase scope for reading the immutable historical purchase grant. */
+export type CreditPurchaseGrantInput = {
+  readonly userId: string;
+  readonly purchaseId: string;
 };
 
 export type CreditTransactionsPageRecord = {
@@ -164,6 +170,34 @@ export async function findCreditTransactionByReferenceForUser(
         eq(creditTransaction.type, input.type),
       ),
     )
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+/**
+ * Returns the historical positive grant for one Credit Pack Purchase. The
+ * Purchase grant is the accounting source of truth for a later refund; the
+ * current Catalog must never be consulted to derive the refund amount.
+ */
+export async function findCreditPurchaseGrantForUser(
+  transaction: DatabaseTransaction,
+  input: CreditPurchaseGrantInput,
+): Promise<CreditTransactionRecord | null> {
+  const rows = await transaction
+    .select()
+    .from(creditTransaction)
+    .where(
+      and(
+        eq(creditTransaction.userId, input.userId),
+        eq(creditTransaction.purchaseId, input.purchaseId),
+        eq(creditTransaction.type, 'purchase'),
+        eq(creditTransaction.referenceType, 'purchase'),
+        eq(creditTransaction.referenceId, input.purchaseId),
+        gt(creditTransaction.amount, 0),
+      ),
+    )
+    .orderBy(asc(creditTransaction.createdAt), asc(creditTransaction.id))
     .limit(1);
 
   return rows[0] ?? null;

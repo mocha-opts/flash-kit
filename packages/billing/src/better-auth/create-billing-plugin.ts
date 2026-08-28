@@ -5,8 +5,10 @@ import { serverEnv } from '@repo/config/env/server';
 import { getCatalogPlan } from '#billing-config/index';
 
 import { getStripePriceId } from '#internal/catalog-pricing';
+import { processPolarRefundEvent } from '#internal/process-polar-refund-event';
 import { getBillingReturnUrl } from '#internal/trusted-return-urls';
 import { handlePolarOrderPaid } from '#providers/polar/hooks/on-order-paid';
+import { createPolarRefundHandlers } from '#providers/polar/hooks/on-refund';
 import { createPolarClient } from '#providers/polar/polar-client';
 import { handleStripeBillingEvent } from '#providers/stripe/hooks/on-order-paid';
 import { createStripeClient } from '#providers/stripe/stripe-client';
@@ -50,6 +52,8 @@ function createStripeBillingPlugin() {
  * Catalog and active-subscription guard cannot be bypassed by an Auth route.
  */
 function createPolarBillingPlugin() {
+  const refundHandlers = createPolarRefundHandlers(processPolarRefundEvent);
+
   return polar({
     client: createPolarClient(),
     createCustomerOnSignUp: true,
@@ -58,6 +62,7 @@ function createPolarBillingPlugin() {
       webhooks({
         secret: requirePolarWebhookSecret(),
         onOrderPaid: handlePolarOrderPaid,
+        ...refundHandlers,
       }),
     ],
   });

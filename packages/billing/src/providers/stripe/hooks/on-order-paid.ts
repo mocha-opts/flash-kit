@@ -9,6 +9,8 @@ import {
 } from '#internal/process-purchase-event';
 import { createStripeClient } from '#providers/stripe/stripe-client';
 import type { CatalogPlan } from '#types';
+import { handleStripeDisputeEvent, isStripeDisputeEventType } from './on-dispute';
+import { handleStripeRefundEvent, isStripeRefundEventType } from './on-refund';
 
 const oneTimeCheckoutEventTypes = new Set([
   'checkout.session.completed',
@@ -54,6 +56,16 @@ type OneTimePurchaseFacts = {
  * official plugin.
  */
 export async function handleStripeBillingEvent(event: Stripe.Event): Promise<void> {
+  if (isStripeRefundEventType(event.type)) {
+    await handleStripeRefundEvent(event);
+    return;
+  }
+
+  if (isStripeDisputeEventType(event.type)) {
+    await handleStripeDisputeEvent(event);
+    return;
+  }
+
   const eventType = toOneTimeCheckoutEventType(event.type);
   const session = getCheckoutSession(event, eventType);
 

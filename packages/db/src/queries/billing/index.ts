@@ -7,6 +7,7 @@ export {
 } from './billing.queries';
 export {
   type CreditAccountRecord,
+  type CreditPurchaseGrantInput,
   type CreditTransactionRecord,
   type CreditTransactionReferenceInput,
   type CreditTransactionsPageRecord,
@@ -14,6 +15,7 @@ export {
   type DecrementCreditBalanceInput,
   decrementCreditBalanceIfSufficientForUser,
   ensureCreditAccountForUser,
+  findCreditPurchaseGrantForUser,
   findCreditTransactionByReferenceForUser,
   findPaidCreditPackPurchaseForUser,
   getCreditBalanceForUser,
@@ -38,8 +40,12 @@ export {
 } from './event.queries';
 export {
   type BillingPurchaseRecord,
+  type BillingPurchaseUserOrderInput,
   getActiveLifetimePurchaseForUser,
   type InsertBillingPurchaseInput,
   type InsertBillingPurchaseResult,
   insertBillingPurchase,
+  lockBillingPurchaseForUserByProviderOrder,
+  type TransitionBillingPurchaseStatusInput,
+  transitionBillingPurchaseStatus,
 } from './purchase.queries';

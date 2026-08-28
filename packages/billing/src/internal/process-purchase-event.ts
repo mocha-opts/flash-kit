@@ -1,15 +1,10 @@
-import { db, withTransaction } from '@repo/db/client';
 import {
-  claimBillingEvent,
   type InsertBillingPurchaseInput,
   insertBillingPurchase,
-  markBillingEventFailed,
-  markBillingEventIgnored,
-  markBillingEventProcessed,
   type UpsertBillingEventInput,
-  upsertBillingEvent,
 } from '@repo/db/queries/billing';
 import { grantCreditsForPurchase } from '#credits/grant-purchase-credits';
+import { processBillingEvent } from '#internal/process-billing-event';
 
 /** Result of resolving a verified provider event into a local purchase fact. */
 export type PurchaseEventResolution =
@@ -44,25 +39,13 @@ export type ProcessPurchaseEventInput = {
  * safe message so the official provider adapter can return a non-2xx response.
  */
 export async function processPurchaseEvent(input: ProcessPurchaseEventInput): Promise<void> {
-  try {
-    const event = await upsertBillingEvent(db, input.identity);
-
-    if (isTerminalEvent(event.status)) {
-      return;
-    }
-
-    const resolution = await input.resolve();
-
-    await withTransaction(db, async (transaction) => {
-      const claim = await claimBillingEvent(transaction, input.identity);
-
-      if (!claim.shouldProcess) {
-        return;
-      }
-
+  await processBillingEvent({
+    identity: input.identity,
+    resolve: input.resolve,
+    failure: input.failure,
+    apply: async (transaction, resolution) => {
       if (resolution.kind === 'ignored') {
-        await markBillingEventIgnored(transaction, claim.event.id);
-        return;
+        return 'ignored';
       }
 
       const { purchase } = await insertBillingPurchase(transaction, resolution.purchase);
@@ -76,32 +59,11 @@ export async function processPurchaseEvent(input: ProcessPurchaseEventInput): Pr
         });
       }
 
-      await markBillingEventProcessed(transaction, claim.event.id);
-    });
-  } catch (cause) {
-    await markFailure(input.identity, input.failure);
-    throw new PurchaseEventProcessingError(input.failure.message, { cause });
-  }
-}
-
-function isTerminalEvent(status: string): boolean {
-  return status === 'processed' || status === 'ignored';
-}
-
-async function markFailure(
-  identity: UpsertBillingEventInput,
-  failure: PurchaseEventFailure,
-): Promise<void> {
-  try {
-    await markBillingEventFailed(db, {
-      provider: identity.provider,
-      providerEventId: identity.providerEventId,
-      errorCode: failure.code,
-      errorMessage: failure.message,
-    });
-  } catch {
-    // Preserve the fixed processing error so the provider can redeliver.
-  }
+      return 'processed';
+    },
+    createProcessingError: (cause) =>
+      new PurchaseEventProcessingError(input.failure.message, { cause }),
+  });
 }
 
 class PurchaseEventProcessingError extends Error {

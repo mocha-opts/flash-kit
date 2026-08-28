@@ -177,6 +177,66 @@ export type CreditTransactionsInput = UserBillingInput & {
   readonly limit?: number;
 };
 
+/** Purchase states kept by the local one-time billing ledger. */
+export type BillingPurchaseStatus = 'paid' | 'refunded' | 'partially_refunded' | 'disputed';
+
+/** Input shared by provider-neutral refund and dispute handling. */
+export type PurchaseStatusMutationInput = UserBillingInput & {
+  readonly provider: BillingProvider;
+  readonly providerOrderId: string;
+};
+
+/** Provider-normalized dispute outcomes accepted by the local status seam. */
+export type PurchaseDisputeOutcome = 'active' | 'lost' | 'won';
+
+/** Provider-neutral dispute input; omitted outcome keeps the active behavior. */
+export type PurchaseDisputeInput = PurchaseStatusMutationInput & {
+  readonly outcome?: PurchaseDisputeOutcome | undefined;
+};
+
+/** Signed refund ledger result; `amount` is always negative. */
+export type CreditRefundCompensation = {
+  readonly transactionId: string;
+  readonly amount: number;
+  readonly balanceAfter: number;
+};
+
+/** Stable result returned after a Lifetime or Credit Pack refund. */
+export type PurchaseRefundResult = {
+  readonly purchaseId: string;
+  readonly provider: BillingProvider;
+  readonly providerOrderId: string;
+  readonly kind: 'lifetime' | 'credit_pack';
+  readonly status: 'refunded';
+  readonly changed: boolean;
+  readonly creditCompensation: CreditRefundCompensation | null;
+};
+
+/** Stable result returned after a provider-confirmed partial refund. */
+export type PurchasePartialRefundResult = {
+  readonly purchaseId: string;
+  readonly provider: BillingProvider;
+  readonly providerOrderId: string;
+  readonly kind: 'lifetime' | 'credit_pack';
+  readonly status: 'partially_refunded' | 'refunded';
+  readonly changed: boolean;
+  /** Partial refunds do not automatically alter the append-only Credit ledger. */
+  readonly creditCompensation: null;
+};
+
+/** Stable result returned after a Lifetime or Credit Pack dispute. */
+export type PurchaseDisputeResult = {
+  readonly purchaseId: string;
+  readonly provider: BillingProvider;
+  readonly providerOrderId: string;
+  readonly kind: 'lifetime' | 'credit_pack';
+  readonly status: 'paid' | 'partially_refunded' | 'disputed' | 'refunded';
+  readonly changed: boolean;
+  readonly outcome: PurchaseDisputeOutcome;
+  /** Disputes do not compensate Credit Packs; a later full refund does. */
+  readonly creditCompensation: null;
+};
+
 /** Trusted server-side input for one idempotent Credit consumption. */
 export type ConsumeCreditsInput = UserBillingInput & {
   readonly amount: number;
@@ -259,6 +319,35 @@ export class CreditConsumptionConflictError extends Error {
   override readonly name = 'CreditConsumptionConflictError';
 
   constructor(message = 'The credit consumption reference is already in use.') {
+    super(message);
+  }
+}
+
+/** The provider order is not present in the local Purchase ledger. */
+export class BillingPurchaseNotFoundError extends Error {
+  override readonly name = 'BillingPurchaseNotFoundError';
+
+  constructor(message = 'The billing purchase was not found.') {
+    super(message);
+  }
+}
+
+/** A refund/dispute could not safely apply to the current Purchase state. */
+export class BillingPurchaseStatusConflictError extends Error {
+  override readonly name = 'BillingPurchaseStatusConflictError';
+
+  constructor(
+    message = 'The billing purchase status transition conflicts with its current state.',
+  ) {
+    super(message);
+  }
+}
+
+/** A Credit Pack has no immutable historical grant to reverse. */
+export class BillingPurchaseCreditGrantMissingError extends Error {
+  override readonly name = 'BillingPurchaseCreditGrantMissingError';
+
+  constructor(message = 'The Credit Pack purchase grant was not found.') {
     super(message);
   }
 }

@@ -18,6 +18,12 @@ import type {
   CreditTransactionView,
 } from '#types';
 
+export {
+  disputePurchase,
+  partialRefundPurchase,
+  refundPurchase,
+} from '#refunds/purchase-status';
+
 /**
  * The only Auth integration seam. The selected official plugin owns its signed
  * Better Auth webhook; Stripe contributes its generated schema, while Polar

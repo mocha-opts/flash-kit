@@ -107,6 +107,18 @@ Callers must pass a safe, non-PII message. `insertBillingPurchase` relies on the
 `getActiveLifetimePurchaseForUser` returns only a paid Lifetime purchase; refunds and disputes do
 not grant an Active Plan.
 
+Refund/dispute composition uses the user-scoped `lockBillingPurchaseForUserByProviderOrder` and
+`transitionBillingPurchaseStatus` primitives. Both the lock and guarded update include the trusted
+`userId`, provider, provider order id, Purchase id, and expected status in SQL; a missing or
+cross-user order is therefore indistinguishable from a missing order. The query layer does not
+decide refund/dispute policy or append compensating Credit entries; those decisions belong to
+`@repo/billing`.
+
+`findCreditPurchaseGrantForUser` reads the immutable positive `purchase` transaction attached to a
+Credit Pack. Billing uses this historical row—not the current Catalog—to calculate one full refund
+compensation inside the caller-owned transaction. The original grant remains append-only, and the
+Credit Account may become negative.
+
 ### Billing identity query boundary
 
 `@repo/db/queries/billing` exposes only the minimum user-scoped identity fields required by the

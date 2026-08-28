@@ -95,6 +95,10 @@
       "description": "查看预付生成额度的余额，以及只追加不改写的完整历史记录。",
       "balanceLabel": "可用余额",
       "units": "可用额度",
+      "negativeBalance": {
+        "title": "已退款额度超过当前剩余余额。",
+        "description": "该负余额会如实保留既有使用历史；在余额重新变为正数前，普通额度消费功能将保持不可用。"
+      },
       "purchaseTitle": "补充额度",
       "purchaseDescription": "需要更多预付生成能力时，可以购买 100 点额度包。无论是否拥有订阅或终身版权限，都可以购买额度。",
       "purchase": "购买 100 点额度",
