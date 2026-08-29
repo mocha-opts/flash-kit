@@ -7,11 +7,16 @@ import { getCatalogPlan } from '#billing-config/index';
 import { getStripePriceId } from '#internal/catalog-pricing';
 import { processPolarRefundEvent } from '#internal/process-polar-refund-event';
 import { getBillingReturnUrl } from '#internal/trusted-return-urls';
-import { handlePolarOrderPaid } from '#providers/polar/hooks/on-order-paid';
 import { createPolarRefundHandlers } from '#providers/polar/hooks/on-refund';
+import {
+  createPolarOrderPaidHandler,
+  createPolarSubscriptionPayloadHandler,
+} from '#providers/polar/hooks/on-subscription-notification';
 import { createPolarClient } from '#providers/polar/polar-client';
 import { handleStripeBillingEvent } from '#providers/stripe/hooks/on-order-paid';
+import { handleStripeSubscriptionNotification } from '#providers/stripe/hooks/on-subscription-notification';
 import { createStripeClient } from '#providers/stripe/stripe-client';
+import type { BillingNotificationOptions } from '#types';
 
 /**
  * Creates the official Better Auth billing plugin for the active deployment.
@@ -19,19 +24,19 @@ import { createStripeClient } from '#providers/stripe/stripe-client';
  * The selected provider owns its signed catch-all webhook endpoint. Auth only
  * installs the returned plugin; it never imports provider implementation types.
  */
-export function createBillingPlugin() {
+export function createBillingPlugin(options: BillingNotificationOptions = {}) {
   if (serverEnv.BILLING_PROVIDER === 'stripe') {
-    return createStripeBillingPlugin();
+    return createStripeBillingPlugin(options);
   }
 
   if (serverEnv.BILLING_PROVIDER === 'polar') {
-    return createPolarBillingPlugin();
+    return createPolarBillingPlugin(options);
   }
 
   return undefined;
 }
 
-function createStripeBillingPlugin() {
+function createStripeBillingPlugin(options: BillingNotificationOptions) {
   return stripe({
     stripeClient: createStripeClient(),
     stripeWebhookSecret: requireStripeWebhookSecret(),
@@ -42,7 +47,10 @@ function createStripeBillingPlugin() {
       requireEmailVerification: true,
       authorizeReference: async ({ user, referenceId }) => referenceId === user.id,
     },
-    onEvent: handleStripeBillingEvent,
+    onEvent: async (event) => {
+      await handleStripeBillingEvent(event, options);
+      await handleStripeSubscriptionNotification(event, options);
+    },
   });
 }
 
@@ -51,7 +59,7 @@ function createStripeBillingPlugin() {
  * signed webhook handling. Application checkout stays on BillingClient so the
  * Catalog and active-subscription guard cannot be bypassed by an Auth route.
  */
-function createPolarBillingPlugin() {
+function createPolarBillingPlugin(options: BillingNotificationOptions) {
   const refundHandlers = createPolarRefundHandlers(processPolarRefundEvent);
 
   return polar({
@@ -61,7 +69,8 @@ function createPolarBillingPlugin() {
       portal({ returnUrl: getBillingReturnUrl('en') }),
       webhooks({
         secret: requirePolarWebhookSecret(),
-        onOrderPaid: handlePolarOrderPaid,
+        onOrderPaid: createPolarOrderPaidHandler(options),
+        onPayload: createPolarSubscriptionPayloadHandler(options),
         ...refundHandlers,
       }),
     ],

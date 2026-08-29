@@ -30,3 +30,33 @@ export const zhCnEmailChangeMessages = {
     footer: '此安全通知已发送到你之前的 Flash Kit 邮箱。',
   },
 } as const;
+
+export const zhCnBillingMessages = {
+  purchaseReceipt: {
+    subject: 'Flash Kit 付款已确认',
+    preview: '你的 Flash Kit 购买已确认',
+    heading: '付款已确认',
+    intro: '感谢你的购买，付款已经确认。',
+    item: '购买项目',
+    itemName: {
+      subscription: (interval: 'month' | 'year' | undefined) =>
+        interval === 'year' ? '年度订阅' : '月度订阅',
+      lifetime: 'Lifetime 买断方案',
+      'credit-package': 'Credit Pack 点数包',
+    },
+    amount: '已支付金额',
+    credits: (value: number) => `已向你的账户增加 ${value} 点 Credit。`,
+    date: '购买日期',
+    footer: '你的 Flash Kit 账户有一笔付款已确认，因此我们向你发送此收据。',
+  },
+  paymentFailed: {
+    subject: '需要处理：Flash Kit 付款失败',
+    preview: 'Flash Kit 订阅付款未能完成',
+    heading: '付款失败',
+    intro: '我们未能完成最近一笔付款。请更新付款方式，以保持订阅有效。',
+    item: '订阅',
+    amount: '待支付金额',
+    date: '付款日期',
+    footer: '你的 Flash Kit 账户有一笔订阅付款未能完成，因此我们向你发送此通知。',
+  },
+} as const;

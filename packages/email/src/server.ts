@@ -15,5 +15,11 @@ export {
   sendEmailChangeVerificationEmail,
   sendMagicLinkEmail,
 } from '#email/senders/auth.senders';
-export { sendPaymentFailedEmail, sendPurchaseReceiptEmail } from '#email/senders/billing.senders';
+export {
+  type BillingEmailSendResult,
+  type SendPaymentFailedEmailInput,
+  type SendPurchaseReceiptEmailInput,
+  sendPaymentFailedEmail,
+  sendPurchaseReceiptEmail,
+} from '#email/senders/billing.senders';
 export { sendWelcomeEmail } from '#email/senders/product.senders';

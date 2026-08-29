@@ -76,6 +76,7 @@ export class StripeBillingProvider implements BillingClient {
       purchaseKind: plan.kind,
       productId,
       priceId,
+      locale,
       ...(plan.kind === 'credit-package' ? { credits: String(plan.credits) } : {}),
       ...(plan.kind === 'subscription' ? { referenceId: userRecord.id } : {}),
     };

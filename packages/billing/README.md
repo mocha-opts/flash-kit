@@ -27,10 +27,12 @@ One-time fulfillment is handled by the selected official plugin's dedicated
 callback: Stripe's `onEvent` callback handles `checkout.session.completed`,
 `checkout.session.async_payment_succeeded`, and
 `checkout.session.async_payment_failed`, while Polar's `onOrderPaid` handles
-`order.paid`; subscription events remain owned by the official plugin. The event
-ledger is PII-free, while the minimal Purchase record keeps only its required
-User ownership and order facts. Unique provider event/order identities ensure
-redelivery cannot grant Lifetime or Credits twice.
+`order.paid`. Subscription state remains Provider-owned, while the same signed
+plugin boundary emits auxiliary receipts for successful create/cycle invoices
+and payment-failed notices for past-due events. The event ledger is PII-free,
+while the minimal Purchase record keeps only its required User ownership and
+order facts. Unique provider event/order identities ensure redelivery cannot
+grant Lifetime or Credits twice or repeat one notification attempt.
 
 The provider-neutral `lifetimeCheckout` and `creditCheckout` capabilities are
 enabled for both providers. Lifetime checkout is blocked only when the user
@@ -69,6 +71,11 @@ implementation-only dependencies and are never re-exported.
 
 The package deliberately does not export `providers/*`, SDK clients, webhook
 hooks, or other implementation modules.
+
+`createBetterAuthBillingPlugin` accepts an optional provider-neutral
+`notificationSender`. The Auth composition root supplies it and maps the two
+stable notification kinds to `@repo/email` semantic senders; Billing never
+depends on the Email package or a transport SDK.
 
 ## Minimal usage
 
@@ -141,6 +148,18 @@ in one transaction. Purchase, Credit Account, Credit Transaction, and processed
 Event changes commit or roll back together. Provider/retrieval/database
 failures record only a fixed safe event error and are rethrown for non-2xx
 redelivery; the application does not add an internal retry loop.
+
+Auxiliary Billing notifications are awaited only after the Purchase/Credit/Event
+transaction has committed. Stripe subscription receipts use `invoice.paid`,
+payment failures use `invoice.payment_failed`, Polar subscription receipts use
+signed `order.paid` create/cycle orders, and Polar payment failures use the
+signed `subscription.past_due` payload. Each path cross-checks Catalog metadata,
+Provider customer/product/price associations, and the current Better Auth User
+before emitting a transport-neutral notification. Callback, rendering, and
+delivery failures are caught outside the Billing processing failure boundary;
+they write only fixed allowlisted log fields and never roll back facts or trigger
+Provider redelivery. There is no Queue, Worker, Cron, Outbox, email log table, or
+application retry loop.
 
 Polar's Better Auth callback does not expose the original Standard Webhooks
 `webhook-id` header. Its event identity is therefore the explicit order-scoped

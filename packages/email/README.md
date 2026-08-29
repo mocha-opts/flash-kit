@@ -44,11 +44,20 @@ Magic-link calls accept `email`, `url`, optional `locale` (`en` or `zh-CN`), and
 `expiresInMinutes` (10 by default). Delivery is awaited synchronously, and authentication email
 failures always propagate to the caller.
 
+Billing senders accept validated semantic inputs rather than provider payloads. Use
+`sendPurchaseReceiptEmail` for a confirmed Lifetime, Credit Pack, or Subscription payment and
+`sendPaymentFailedEmail` for a Subscription payment failure. Both return `{ status: 'sent' }` or
+`{ status: 'failed' }`; the failed result never contains provider response data. Their React Email
+templates support English and Simplified Chinese, and the shared renderer supplies both HTML and
+plain text to the configured Mailer. Billing sender validation errors propagate as input errors.
+Rendering and delivery errors are logged with only a fixed category and notification kind.
+
 ## Security notes
 
-Server senders do not log full recipients, magic URLs, HTML bodies, secrets, or raw provider
-responses. SMTP authentication is either absent (for local Mailpit) or configured with both user
-and password.
+Server senders do not log full recipients, magic URLs, HTML/text bodies, secrets, provider
+responses/message identifiers, or error details. SMTP authentication is either absent (for local
+Mailpit) or configured with both user and password. The active mailer is still created at module
+initialization, so a selected provider with missing configuration fails fast as before.
 
 ## Validation command
 

@@ -9,6 +9,7 @@
   },
   "imports": {
     "#email/templates/auth/*": "./src/templates/auth/*.tsx",
+    "#email/templates/billing/*": "./src/templates/billing/*.tsx",
     "#email/templates/components/*": "./src/templates/components/*.tsx",
     "#email/*": "./src/*.ts"
   },

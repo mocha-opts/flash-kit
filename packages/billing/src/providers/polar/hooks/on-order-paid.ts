@@ -7,7 +7,12 @@ import {
   type PurchaseEventResolution,
   processPurchaseEvent,
 } from '#internal/process-purchase-event';
-import type { CatalogPlan } from '#types';
+import type {
+  BillingLocale,
+  BillingNotificationOptions,
+  CatalogPlan,
+  PurchaseReceiptBillingNotification,
+} from '#types';
 
 const lifetimePlanId = 'lifetime';
 const creditPackPlanId = 'credit-pack-100';
@@ -18,12 +23,10 @@ const processingErrorMessage = 'One-time order processing failed.';
 
 type OneTimePlan = Extract<CatalogPlan, { readonly kind: 'lifetime' | 'credit-package' }>;
 
-/**
- * Handles the official Polar `order.paid` callback after Better Auth verifies
- * its Standard Webhooks signature. All order identities are recorded with an
- * order-scoped key because this callback does not expose `webhook-id`.
- */
-export async function handlePolarOrderPaid(payload: WebhookOrderPaidPayload): Promise<void> {
+export async function handlePolarOrderPaid(
+  payload: WebhookOrderPaidPayload,
+  options: BillingNotificationOptions = {},
+): Promise<void> {
   const order = payload.data;
 
   await processPurchaseEvent({
@@ -37,6 +40,7 @@ export async function handlePolarOrderPaid(payload: WebhookOrderPaidPayload): Pr
       code: processingErrorCode,
       message: processingErrorMessage,
     },
+    ...(options.notificationSender ? { notificationSender: options.notificationSender } : {}),
   });
 }
 
@@ -59,12 +63,35 @@ async function resolvePolarPurchase(
     userId,
     checkoutId,
     credits: checkoutCredits,
+    locale,
   } = requireOneTimeOrder(order, plan, expectedProductId);
   const user = await getBillingUser(userId);
 
   if (!user) {
     throw new PolarOneTimeValidationError();
   }
+
+  const notification: PurchaseReceiptBillingNotification =
+    plan.kind === 'credit-package'
+      ? {
+          kind: 'purchase-receipt',
+          email: user.email,
+          locale,
+          purchaseKind: 'credit-package',
+          amount: order.totalAmount,
+          currency: order.currency,
+          occurredAt: order.createdAt,
+          credits: requireCreditAmount(checkoutCredits),
+        }
+      : {
+          kind: 'purchase-receipt',
+          email: user.email,
+          locale,
+          purchaseKind: 'lifetime',
+          amount: order.totalAmount,
+          currency: order.currency,
+          occurredAt: order.createdAt,
+        };
 
   return {
     kind: 'paid',
@@ -89,6 +116,7 @@ async function resolvePolarPurchase(
           },
         }
       : {}),
+    notification,
   };
 }
 
@@ -126,7 +154,12 @@ function requireOneTimeOrder(
   order: WebhookOrderPaidPayload['data'],
   plan: OneTimePlan,
   expectedProductId: string,
-): { readonly userId: string; readonly checkoutId: string; readonly credits: number | undefined } {
+): {
+  readonly userId: string;
+  readonly checkoutId: string;
+  readonly credits: number | undefined;
+  readonly locale: BillingLocale;
+} {
   const userId = getMetadataString(order.metadata, 'userId');
   const metadataProductId = getMetadataString(order.metadata, 'productId');
   const checkoutId = order.checkoutId;
@@ -155,8 +188,9 @@ function requireOneTimeOrder(
   }
 
   const credits = readCreditMetadata(order.metadata, plan);
+  const locale = readBillingLocale(order.metadata);
 
-  return { userId, checkoutId, credits };
+  return { userId, checkoutId, credits, locale };
 }
 
 function readCreditMetadata(
@@ -195,12 +229,34 @@ function getMetadataString(
   return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
+function readBillingLocale(metadata: WebhookOrderPaidPayload['data']['metadata']): BillingLocale {
+  const locale = metadata.locale;
+
+  if (locale === undefined || locale === 'en') {
+    return 'en';
+  }
+
+  if (locale === 'zh-CN') {
+    return locale;
+  }
+
+  throw new PolarOneTimeValidationError();
+}
+
 function isNonEmptyString(value: string | null): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
 function isLowercaseCurrency(value: string): boolean {
   return /^[a-z]{3}$/u.test(value);
+}
+
+function requireCreditAmount(value: number | undefined): number {
+  if (value === undefined) {
+    throw new PolarOneTimeValidationError();
+  }
+
+  return value;
 }
 
 function isValidDate(value: Date): boolean {

@@ -96,6 +96,8 @@ export class PolarBillingProvider implements BillingClient {
             planId: plan.id,
             purchaseKind: plan.kind,
             productId,
+            locale,
+            ...(plan.providers.polar?.priceId ? { priceId: plan.providers.polar.priceId } : {}),
             ...(plan.kind === 'credit-package' ? { credits: String(plan.credits) } : {}),
             ...(plan.kind === 'subscription' ? { referenceId: userRecord.id } : {}),
           },

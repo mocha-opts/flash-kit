@@ -1,12 +1,12 @@
 'use client';
 
 export {
-  linkSocialAccount,
-  signInWithMagicLink,
-  signInWithSocial,
-  unlinkAccount,
   type LinkSocialAccountInput,
+  linkSocialAccount,
   type OAuthProvider,
   type SignInWithMagicLinkInput,
   type SignInWithSocialInput,
+  signInWithMagicLink,
+  signInWithSocial,
+  unlinkAccount,
 } from './client-api';

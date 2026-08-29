@@ -8,7 +8,12 @@ import {
   processPurchaseEvent,
 } from '#internal/process-purchase-event';
 import { createStripeClient } from '#providers/stripe/stripe-client';
-import type { CatalogPlan } from '#types';
+import type {
+  BillingLocale,
+  BillingNotificationOptions,
+  CatalogPlan,
+  PurchaseReceiptBillingNotification,
+} from '#types';
 import { handleStripeDisputeEvent, isStripeDisputeEventType } from './on-dispute';
 import { handleStripeRefundEvent, isStripeRefundEventType } from './on-refund';
 
@@ -48,6 +53,7 @@ type OneTimePurchaseFacts = {
     readonly amount: number;
     readonly description: string;
   };
+  readonly notification: PurchaseReceiptBillingNotification;
 };
 
 /**
@@ -55,7 +61,10 @@ type OneTimePurchaseFacts = {
  * verified the Stripe signature. Subscription events remain owned by the
  * official plugin.
  */
-export async function handleStripeBillingEvent(event: Stripe.Event): Promise<void> {
+export async function handleStripeBillingEvent(
+  event: Stripe.Event,
+  options: BillingNotificationOptions = {},
+): Promise<void> {
   if (isStripeRefundEventType(event.type)) {
     await handleStripeRefundEvent(event);
     return;
@@ -84,6 +93,7 @@ export async function handleStripeBillingEvent(event: Stripe.Event): Promise<voi
       code: processingErrorCode,
       message: processingErrorMessage,
     },
+    ...(options.notificationSender ? { notificationSender: options.notificationSender } : {}),
   });
 }
 
@@ -101,6 +111,7 @@ async function resolveStripePurchase(
     ? {
         kind: 'paid',
         purchase,
+        notification: purchase.notification,
         ...(purchase.creditGrant ? { creditGrant: purchase.creditGrant } : {}),
       }
     : { kind: 'ignored' };
@@ -166,12 +177,11 @@ async function getOneTimePurchaseFacts(
 
   const expectedProductId = getStripeProductId(plan.id);
   const expectedPriceId = getStripePriceId(plan.id);
-  const { userId, credits: checkoutCredits } = assertSessionMetadata(
-    session,
-    plan,
-    expectedProductId,
-    expectedPriceId,
-  );
+  const {
+    userId,
+    credits: checkoutCredits,
+    locale,
+  } = assertSessionMetadata(session, plan, expectedProductId, expectedPriceId);
 
   if (session.mode !== 'payment') {
     throw new OneTimeCheckoutValidationError();
@@ -228,6 +238,7 @@ async function getOneTimePurchaseFacts(
     expectedProductId,
     expectedPriceId,
     checkoutCredits,
+    locale,
   );
 
   const paymentIntentCustomerId = getStripeObjectId(paymentIntent.customer);
@@ -256,6 +267,27 @@ async function getOneTimePurchaseFacts(
 
   const creditAmount =
     plan.kind === 'credit-package' ? requireCreditAmount(checkoutCredits) : undefined;
+  const notification: PurchaseReceiptBillingNotification =
+    plan.kind === 'credit-package'
+      ? {
+          kind: 'purchase-receipt',
+          email: user.email,
+          locale,
+          purchaseKind: 'credit-package',
+          amount: paymentIntent.amount_received,
+          currency: paymentIntent.currency,
+          occurredAt: purchasedAt,
+          credits: requireCreditAmount(creditAmount),
+        }
+      : {
+          kind: 'purchase-receipt',
+          email: user.email,
+          locale,
+          purchaseKind: 'lifetime',
+          amount: paymentIntent.amount_received,
+          currency: paymentIntent.currency,
+          occurredAt: purchasedAt,
+        };
 
   return {
     userId,
@@ -277,6 +309,7 @@ async function getOneTimePurchaseFacts(
           },
         }
       : {}),
+    notification,
   };
 }
 
@@ -309,7 +342,11 @@ function assertSessionMetadata(
   plan: OneTimePlan,
   productId: string,
   priceId: string,
-): { readonly userId: string; readonly credits: number | undefined } {
+): {
+  readonly userId: string;
+  readonly credits: number | undefined;
+  readonly locale: BillingLocale;
+} {
   const metadata = session.metadata;
   const userId = metadata?.userId;
 
@@ -324,8 +361,9 @@ function assertSessionMetadata(
   }
 
   const credits = readCreditMetadata(metadata, plan);
+  const locale = readBillingLocale(metadata);
 
-  return { userId, credits };
+  return { userId, credits, locale };
 }
 
 function getOnlyLineItem(session: Stripe.Checkout.Session): Stripe.LineItem {
@@ -368,6 +406,7 @@ function assertPaymentIntentMetadata(
   productId: string,
   priceId: string,
   sessionCredits: number | undefined,
+  sessionLocale: BillingLocale,
 ): void {
   const metadata = paymentIntent.metadata;
 
@@ -382,10 +421,25 @@ function assertPaymentIntentMetadata(
   }
 
   const paymentIntentCredits = readCreditMetadata(metadata, plan);
+  const paymentIntentLocale = readBillingLocale(metadata);
 
-  if (paymentIntentCredits !== sessionCredits) {
+  if (paymentIntentCredits !== sessionCredits || paymentIntentLocale !== sessionLocale) {
     throw new OneTimeCheckoutValidationError();
   }
+}
+
+function readBillingLocale(metadata: Stripe.Metadata | null): BillingLocale {
+  const locale = metadata?.locale;
+
+  if (locale === undefined) {
+    return 'en';
+  }
+
+  if (locale === 'en' || locale === 'zh-CN') {
+    return locale;
+  }
+
+  throw new OneTimeCheckoutValidationError();
 }
 
 function readCreditMetadata(

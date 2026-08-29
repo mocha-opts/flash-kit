@@ -98,6 +98,67 @@ export type ActivePlan = {
 /** Supported URL locales accepted by billing redirects. */
 export type BillingLocale = 'en' | 'zh-CN';
 
+/**
+ * Provider-neutral facts needed by the semantic purchase receipt sender.
+ *
+ * The recipient is read from the trusted Auth user record by the provider
+ * adapter. Provider SDK objects, raw webhook payloads, and secrets never cross
+ * this boundary.
+ */
+type PurchaseReceiptBillingNotificationBase = {
+  readonly kind: 'purchase-receipt';
+  readonly email: string;
+  readonly locale: BillingLocale;
+  readonly amount: number;
+  readonly currency: string;
+  readonly occurredAt: Date;
+};
+
+export type PurchaseReceiptBillingNotification =
+  | (PurchaseReceiptBillingNotificationBase & {
+      readonly purchaseKind: 'subscription';
+      readonly interval: 'month' | 'year';
+      readonly credits?: never;
+    })
+  | (PurchaseReceiptBillingNotificationBase & {
+      readonly purchaseKind: 'lifetime';
+      readonly interval?: never;
+      readonly credits?: never;
+    })
+  | (PurchaseReceiptBillingNotificationBase & {
+      readonly purchaseKind: 'credit-package';
+      readonly interval?: never;
+      readonly credits: number;
+    });
+
+/** Provider-neutral facts needed by the semantic payment-failed sender. */
+export type PaymentFailedBillingNotification = {
+  readonly kind: 'payment-failed';
+  readonly email: string;
+  readonly locale: BillingLocale;
+  readonly interval: 'month' | 'year';
+  readonly amount: number;
+  readonly currency: string;
+  readonly occurredAt: Date;
+};
+
+/** Notification facts emitted only after the corresponding Billing transaction commits. */
+export type BillingNotification =
+  | PurchaseReceiptBillingNotification
+  | PaymentFailedBillingNotification;
+
+/**
+ * Callback supplied by the Auth composition root to dispatch semantic email
+ * senders. Billing owns invocation timing and failure isolation; Auth owns the
+ * concrete email package integration.
+ */
+export type BillingNotificationSender = (notification: BillingNotification) => Promise<void>;
+
+/** Optional notification port for provider webhook handlers. */
+export type BillingNotificationOptions = {
+  readonly notificationSender?: BillingNotificationSender;
+};
+
 /** Input for a checkout request; the user id must come from an authenticated server context. */
 export type CreateCheckoutInput = {
   readonly userId: string;

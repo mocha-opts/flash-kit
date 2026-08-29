@@ -4,7 +4,11 @@ import {
   type UpsertBillingEventInput,
 } from '@repo/db/queries/billing';
 import { grantCreditsForPurchase } from '#credits/grant-purchase-credits';
-import { processBillingEvent } from '#internal/process-billing-event';
+import {
+  type BillingEventProcessResult,
+  processBillingEvent,
+} from '#internal/process-billing-event';
+import type { BillingNotificationSender, PurchaseReceiptBillingNotification } from '#types';
 
 /** Result of resolving a verified provider event into a local purchase fact. */
 export type PurchaseEventResolution =
@@ -16,6 +20,8 @@ export type PurchaseEventResolution =
         readonly amount: number;
         readonly description: string;
       };
+      /** Optional receipt facts emitted only after the purchase transaction commits. */
+      readonly notification?: PurchaseReceiptBillingNotification;
     };
 
 /** Fixed, non-sensitive failure details owned by the provider adapter. */
@@ -28,6 +34,7 @@ export type ProcessPurchaseEventInput = {
   readonly identity: UpsertBillingEventInput;
   readonly resolve: () => Promise<PurchaseEventResolution>;
   readonly failure: PurchaseEventFailure;
+  readonly notificationSender?: BillingNotificationSender;
 };
 
 /**
@@ -38,17 +45,31 @@ export type ProcessPurchaseEventInput = {
  * failure is recorded with adapter-owned safe text and rethrown with the same
  * safe message so the official provider adapter can return a non-2xx response.
  */
-export async function processPurchaseEvent(input: ProcessPurchaseEventInput): Promise<void> {
-  await processBillingEvent({
+export async function processPurchaseEvent(
+  input: ProcessPurchaseEventInput,
+): Promise<BillingEventProcessResult> {
+  const notificationSender = input.notificationSender;
+  let receiptNotification: PurchaseReceiptBillingNotification | undefined;
+
+  return await processBillingEvent({
     identity: input.identity,
     resolve: input.resolve,
     failure: input.failure,
+    ...(notificationSender
+      ? {
+          notifyAfterCommit: async () => {
+            if (receiptNotification) {
+              await notificationSender(receiptNotification);
+            }
+          },
+        }
+      : {}),
     apply: async (transaction, resolution) => {
       if (resolution.kind === 'ignored') {
         return 'ignored';
       }
 
-      const { purchase } = await insertBillingPurchase(transaction, resolution.purchase);
+      const { purchase, inserted } = await insertBillingPurchase(transaction, resolution.purchase);
 
       if (resolution.creditGrant) {
         await grantCreditsForPurchase(transaction, {
@@ -57,6 +78,10 @@ export async function processPurchaseEvent(input: ProcessPurchaseEventInput): Pr
           amount: resolution.creditGrant.amount,
           description: resolution.creditGrant.description,
         });
+      }
+
+      if (inserted && resolution.notification) {
+        receiptNotification = resolution.notification;
       }
 
       return 'processed';

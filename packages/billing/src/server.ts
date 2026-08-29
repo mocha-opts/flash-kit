@@ -10,6 +10,7 @@ import { consumeCreditsInputSchema, consumeCreditsInTransaction } from '#credits
 import type {
   ActivePlan,
   BillingClient,
+  BillingNotificationOptions,
   ConsumeCreditsInput,
   ConsumeCreditsResult,
   CreditBalance,
@@ -23,14 +24,23 @@ export {
   partialRefundPurchase,
   refundPurchase,
 } from '#refunds/purchase-status';
+export type {
+  BillingNotification,
+  BillingNotificationOptions,
+  BillingNotificationSender,
+  PaymentFailedBillingNotification,
+  PurchaseReceiptBillingNotification,
+} from '#types';
 
 /**
  * The only Auth integration seam. The selected official plugin owns its signed
  * Better Auth webhook; Stripe contributes its generated schema, while Polar
  * links customers through external Better Auth user ids without billing tables.
  */
-export function createBetterAuthBillingPlugin(): BetterAuthPlugin | undefined {
-  return createBillingPlugin();
+export function createBetterAuthBillingPlugin(
+  options: BillingNotificationOptions = {},
+): BetterAuthPlugin | undefined {
+  return createBillingPlugin(options);
 }
 
 /** Returns the selected deployment's provider-neutral billing client. */

@@ -33,3 +33,35 @@ export const enEmailChangeMessages = {
     footer: 'This security notice was sent to your previous Flash Kit email address.',
   },
 } as const;
+
+export const enBillingMessages = {
+  purchaseReceipt: {
+    subject: 'Your Flash Kit payment is confirmed',
+    preview: 'Your Flash Kit purchase has been confirmed',
+    heading: 'Payment confirmed',
+    intro: 'Thank you for your purchase. Your payment has been confirmed.',
+    item: 'Purchase',
+    itemName: {
+      subscription: (interval: 'month' | 'year' | undefined) =>
+        interval === 'year' ? 'Yearly subscription' : 'Monthly subscription',
+      lifetime: 'Lifetime plan',
+      'credit-package': 'Credit Pack',
+    },
+    amount: 'Amount paid',
+    credits: (value: number) => `${value} credits added to your account.`,
+    date: 'Purchase date',
+    footer: 'This receipt was sent because a payment was confirmed for your Flash Kit account.',
+  },
+  paymentFailed: {
+    subject: 'Action needed: your Flash Kit payment failed',
+    preview: 'A Flash Kit subscription payment could not be completed',
+    heading: 'Payment failed',
+    intro:
+      'We could not complete your latest payment. Please update your payment method to keep your subscription active.',
+    item: 'Subscription',
+    amount: 'Amount due',
+    date: 'Payment date',
+    footer:
+      'This notice was sent because a payment for your Flash Kit account could not be completed.',
+  },
+} as const;

@@ -10,7 +10,8 @@ Profile updates target the Better Auth `user` row directly; Session view models 
 
 It does not implement passwords, OTP, MFA, passkeys, organizations, invitations, impersonation,
 account deletion, billing workflows, provider SDKs, or admin UI. Its only Billing integration is
-installing the official Better Auth plugin returned by the public `@repo/billing/server` seam.
+installing the official Better Auth plugin returned by the public `@repo/billing/server` seam and
+injecting the two semantic Billing email senders at that composition root.
 
 ## Dependencies
 
@@ -116,6 +117,12 @@ change-email hook: the recent-session request creates a hashed, one-use, expirin
 record and awaits both localized messages. Verification consumes the record, updates the email,
 and revokes all sessions except the initiating session in one Better Auth adapter transaction;
 success and failure redirects contain only fixed status flags.
+
+Billing notifications are composed in `plugins/billing.ts`: provider-neutral receipt and
+payment-failed facts from `@repo/billing/server` are mapped to the semantic senders exported by
+`@repo/email/server`. Auth does not receive Provider SDK objects and does not send from inside a
+Billing transaction. Auxiliary delivery failures are isolated by the Billing/Email boundaries and
+cannot change committed Purchase, Credit, Billing Event, or Provider-owned Subscription facts.
 
 ## Validation command
 

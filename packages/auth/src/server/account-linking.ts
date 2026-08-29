@@ -3,7 +3,7 @@ import 'server-only';
 import { headers } from 'next/headers';
 
 import { auth } from '#auth';
-import { authConfig, type AuthOAuthProvider } from '#config/index';
+import { type AuthOAuthProvider, authConfig } from '#config/index';
 
 import { getSession } from './get-session';
 
