@@ -1,11 +1,18 @@
 'use server';
 
 import {
+  deleteCurrentUserAccount,
   getSafeCallbackPath,
   requestEmailChange,
   revokeCurrentOtherSessions,
   revokeCurrentSession,
 } from '@repo/auth/server';
+import { assertAccountDeletionAllowed } from '@repo/billing/server';
+import {
+  AccountDeletionActiveSubscriptionError,
+  AccountDeletionSubscriptionStateError,
+  BillingUnavailableError,
+} from '@repo/billing/types';
 import { getLocalizedPathname } from '@repo/i18n/navigation';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -14,10 +21,46 @@ import { returnServerError } from 'next-safe-action';
 import { authenticatedAction, getSafeActionError } from '@/lib/actions/action-clients';
 
 import {
+  accountDeletionSchema,
   emailChangeSchema,
   revokeOtherSessionsSchema,
   revokeSessionSchema,
 } from '../_schemas/security.schema';
+
+/** Deletes only after an explicit confirmation, Provider preflight, and fresh-session recheck. */
+export const deleteAccountAction = authenticatedAction
+  .inputSchema(accountDeletionSchema)
+  .action(async ({ ctx }) => {
+    try {
+      await assertAccountDeletionAllowed({ userId: ctx.user.id });
+    } catch (error) {
+      if (error instanceof AccountDeletionActiveSubscriptionError) {
+        return returnServerError(await getSafeActionError('accountDeletionActiveSubscription'));
+      }
+
+      if (error instanceof AccountDeletionSubscriptionStateError) {
+        return returnServerError(await getSafeActionError('accountDeletionSubscriptionState'));
+      }
+
+      if (error instanceof BillingUnavailableError) {
+        return returnServerError(await getSafeActionError('billingUnavailable'));
+      }
+
+      throw error;
+    }
+
+    try {
+      await deleteCurrentUserAccount(ctx.user.id);
+    } catch (error) {
+      if (isSessionNotFreshError(error)) {
+        return returnServerError(await getSafeActionError('recentSession'));
+      }
+
+      throw error;
+    }
+
+    return { deleted: true };
+  });
 
 /** Revokes one owned session; revoking the current session redirects to sign-in. */
 export const revokeSessionAction = authenticatedAction

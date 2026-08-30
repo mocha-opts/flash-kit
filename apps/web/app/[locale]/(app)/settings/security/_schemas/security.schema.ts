@@ -17,5 +17,13 @@ export const emailChangeSchema = z.object({
   newEmail: z.email({ error: 'emailInvalid' }).transform((email) => email.trim().toLowerCase()),
 });
 
+/** The destructive action requires a deliberate, server-revalidated phrase. */
+export const accountDeletionSchema = z.object({
+  confirmation: z.string().refine((value) => value === 'DELETE', {
+    error: 'confirmationInvalid',
+  }),
+});
+
 export type EmailChangeInput = z.input<typeof emailChangeSchema>;
+export type AccountDeletionInput = z.input<typeof accountDeletionSchema>;
 export type RevokeSessionInput = z.input<typeof revokeSessionSchema>;

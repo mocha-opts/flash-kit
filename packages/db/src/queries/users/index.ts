@@ -8,6 +8,7 @@ export {
   type AdminUserRole,
   type AdminUserRoleFilter,
   type AdminUserStatusFilter,
+  deleteUserForAccountDeletion,
   listActiveUserSessions,
   listUsersForAdmin,
   revokeOtherUserSessions,

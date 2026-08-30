@@ -1,10 +1,11 @@
 import { authConfig } from '@repo/auth/config';
-import { getLinkedAccountSummaries, listCurrentSessions } from '@repo/auth/server';
+import { getLinkedAccountSummaries, listCurrentSessions, requireUser } from '@repo/auth/server';
+import { getAccountDeletionPreview } from '@repo/billing/server';
 import { isLocale } from '@repo/i18n/config';
 import { getLocalizedPathname } from '@repo/i18n/navigation';
 import { getTranslations } from '@repo/i18n/server';
 import { notFound } from 'next/navigation';
-
+import { AccountDeletionSection } from './_components/account-deletion-section';
 import { AccountLinkingSection } from './_components/account-linking-section';
 import { EmailChangeForm } from './_components/email-change-form';
 import { SessionSection, type SessionViewModel } from './_components/session-section';
@@ -23,10 +24,12 @@ export default async function SecurityPage({ params, searchParams }: SecurityPag
   }
 
   const query = await searchParams;
-  const [t, linkedAccounts, sessions] = await Promise.all([
+  const currentUser = await requireUser();
+  const [t, linkedAccounts, sessions, accountDeletionPreview] = await Promise.all([
     getTranslations({ locale: requestedLocale, namespace: 'auth' }),
     getLinkedAccountSummaries(),
     listCurrentSessions(),
+    getAccountDeletionPreview({ userId: currentUser.id }),
   ]);
   const securityPath = getLocalizedPathname({
     locale: requestedLocale,
@@ -124,6 +127,13 @@ export default async function SecurityPage({ params, searchParams }: SecurityPag
         </p>
       ) : null}
       <EmailChangeForm callbackPath={securityPath} locale={requestedLocale} />
+      <AccountDeletionSection
+        preview={accountDeletionPreview}
+        signInPath={getLocalizedPathname({
+          locale: requestedLocale,
+          pathname: '/auth/sign-in',
+        })}
+      />
     </main>
   );
 }

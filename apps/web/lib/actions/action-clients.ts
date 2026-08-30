@@ -23,6 +23,8 @@ export type AuthenticatedActionContext = {
 };
 
 type SafeErrorKind =
+  | 'accountDeletionActiveSubscription'
+  | 'accountDeletionSubscriptionState'
   | 'activeSubscriptionExists'
   | 'billingEmailVerificationRequired'
   | 'billingUnavailable'
@@ -87,6 +89,10 @@ export async function getSafeActionError(
   // No provider, database, or Better Auth error text crosses the action boundary.
   const message = (() => {
     switch (kind) {
+      case 'accountDeletionActiveSubscription':
+        return translations('accountDeletionActiveSubscription');
+      case 'accountDeletionSubscriptionState':
+        return translations('accountDeletionSubscriptionState');
       case 'activeSubscriptionExists':
         return translations('activeSubscriptionExists');
       case 'billingEmailVerificationRequired':

@@ -1,8 +1,8 @@
 import 'server-only';
 
 import { and, asc, count, desc, eq, gt, ilike, isNull, ne, not, or, sql } from 'drizzle-orm';
-import { db } from '#db/client/index';
-import { session, user } from '#db/schema/index';
+import { db, withTransaction } from '#db/client/index';
+import { session, subscription, user } from '#db/schema/index';
 
 export type AdminUserRoleFilter = 'all' | 'admin' | 'user';
 export type AdminUserStatusFilter = 'all' | 'active' | 'banned';
@@ -155,4 +155,22 @@ export async function revokeOtherUserSessions(
     .returning({ id: session.id });
 
   return rows.length;
+}
+
+/**
+ * Deletes one authoritative User after Auth and Billing have completed their
+ * security checks. User-owned records cascade; the Stripe plugin's local
+ * subscription rows have no generated FK and are removed explicitly.
+ */
+export async function deleteUserForAccountDeletion(userId: string): Promise<boolean> {
+  return await withTransaction(db, async (transaction) => {
+    await transaction.delete(subscription).where(eq(subscription.referenceId, userId));
+
+    const rows = await transaction
+      .delete(user)
+      .where(eq(user.id, userId))
+      .returning({ id: user.id });
+
+    return rows.length > 0;
+  });
 }

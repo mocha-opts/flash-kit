@@ -25,7 +25,7 @@ SDKs, and app internals. Auth may depend on DB; DB must never reverse that depen
 | --- | --- | --- |
 | `@repo/db/client` | `src/client/index.ts` | Default/isolated Drizzle clients and transaction helpers. |
 | `@repo/db/schema` | `src/schema/index.ts` | Server-only Better Auth and removable custom schema exports. |
-| `@repo/db/queries/users` | `src/queries/users/index.ts` | User-scoped Better Auth profile/session queries and the explicit Admin user-list query boundary. |
+| `@repo/db/queries/users` | `src/queries/users/index.ts` | User-scoped Better Auth profile/session queries, explicit Admin user-list queries, and the narrow post-authorization account-deletion query. |
 | `@repo/db/queries/billing` | `src/queries/billing/index.ts` | Billing identity plus atomic Purchase/Event persistence primitives; no Billing workflow. |
 | `@repo/db/queries/example` | `src/queries/example/index.ts` | User-scoped Project CRUD queries. |
 | `@repo/db/testing` | `src/testing/index.ts` | Test-only database context boundary. |
@@ -138,6 +138,17 @@ query returns the total count with the page and classifies each role as `admin` 
 
 Database errors from this query propagate to the caller. Do not replace it with Better Auth's
 `listUsers` API, whose adapter error handling can turn a database failure into an empty result.
+
+### Account deletion
+
+`deleteUserForAccountDeletion(userId)` may be called only after Auth has revalidated a recent
+session and Billing has completed its Provider preflight. It removes the Stripe plugin's local
+subscription rows for the exact User reference, then deletes the User in one transaction. Existing
+foreign keys cascade Session, Account, Project, Purchase, Credit Account, and target-user Credit
+Transaction rows; Credit Transactions where the deleted User was only the Admin actor retain the
+transaction and set the actor to null. The PII-free `billing_event` table has no User foreign key
+and is intentionally retained, preserving webhook redelivery idempotency. No migration is needed
+for this flow because those delete actions are already encoded in the current schema.
 
 ## Removing the Project example manually
 

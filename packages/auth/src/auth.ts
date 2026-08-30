@@ -26,6 +26,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: false,
   },
+  user: {
+    // Account deletion is available only through the confirmed application action.
+    deleteUser: { enabled: false },
+  },
   socialProviders,
   account: {
     encryptOAuthTokens: true,

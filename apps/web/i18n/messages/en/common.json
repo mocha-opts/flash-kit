@@ -38,6 +38,8 @@
     "billing": "Billing"
   },
   "actions": {
+    "accountDeletionActiveSubscription": "Cancel your active or trial subscription before deleting your account.",
+    "accountDeletionSubscriptionState": "Your provider returned a subscription state that is not safely canceled. Review Billing before trying again.",
     "unauthenticated": "Your session has ended. Please sign in again.",
     "recentSession": "For this sensitive change, please sign in again and retry.",
     "forbidden": "You do not have permission to perform this action.",
@@ -434,6 +436,27 @@
         "validation": {
           "emailInvalid": "Enter a valid email address.",
           "callbackInvalid": "This request could not be completed."
+        }
+      },
+      "accountDeletion": {
+        "title": "Delete account",
+        "description": "Permanently remove this account and its local product data. This action cannot be undone.",
+        "dataLoss": "Your profile, sessions, linked sign-in accounts, projects, local purchases, and local credit records will be deleted.",
+        "lifetimeLoss": "Your Lifetime access is stored locally and will be permanently lost.",
+        "creditLoss": "Your credit balance ({balance}) and complete credit history will be permanently lost.",
+        "subscriptionNotice": "We will verify your current subscription with the billing provider immediately before deletion. Active, trialing, past-due, or unknown states block deletion. <billingLink>Review Billing</billingLink> first if you have a subscription.",
+        "open": "Delete account",
+        "close": "Close account deletion confirmation",
+        "confirmTitle": "Permanently delete this account?",
+        "confirmDescription": "This is the final confirmation. Type the exact phrase below before continuing.",
+        "confirmationLabel": "Confirmation phrase",
+        "confirmationHelp": "Type DELETE in uppercase.",
+        "cancel": "Keep account",
+        "confirm": "Permanently delete account",
+        "submitting": "Verifying and deleting…",
+        "requestFailed": "We could not delete this account. No deletion was completed; please try again.",
+        "validation": {
+          "confirmationInvalid": "Type DELETE exactly to confirm permanent deletion."
         }
       },
       "emailChangeStatus": {

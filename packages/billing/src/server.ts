@@ -4,6 +4,7 @@ import type { BetterAuthPlugin } from '@better-auth/core';
 import { db, withTransaction } from '@repo/db/client';
 import {
   type CreditTransactionWithPurchase,
+  getActiveLifetimePurchaseForUser,
   getBillingUser,
   getCreditBalanceForUser,
   listCreditTransactionsForUser,
@@ -14,6 +15,7 @@ import { createBillingClient } from '#billing/create-billing-client';
 import { adjustCreditsInputSchema, adjustCreditsInTransaction } from '#credits/adjust-credits';
 import { consumeCreditsInputSchema, consumeCreditsInTransaction } from '#credits/consume-credits';
 import type {
+  AccountDeletionPreview,
   ActivePlan,
   AdjustCreditsInput,
   AdjustCreditsResult,
@@ -26,6 +28,10 @@ import type {
   CreditTransactionsInput,
   CreditTransactionsPage,
   CreditTransactionView,
+} from '#types';
+import {
+  AccountDeletionActiveSubscriptionError,
+  AccountDeletionSubscriptionStateError,
 } from '#types';
 
 export {
@@ -68,6 +74,48 @@ export async function hasFeature(input: {
   readonly feature: string;
 }): Promise<boolean> {
   return await createBillingClient().hasFeature(input);
+}
+
+/**
+ * Returns deletion warnings from local durable Billing facts only. Provider
+ * availability is intentionally checked at mutation time, immediately before deletion.
+ */
+export async function getAccountDeletionPreview(input: {
+  readonly userId: string;
+}): Promise<AccountDeletionPreview> {
+  const [lifetimePurchase, creditBalance, creditHistory] = await Promise.all([
+    getActiveLifetimePurchaseForUser(input.userId),
+    getCreditBalanceForUser(input.userId),
+    listCreditTransactionsForUser({ userId: input.userId, page: 1, limit: 1 }),
+  ]);
+
+  return {
+    hasLifetimeAccess: lifetimePurchase !== null,
+    creditBalance,
+    hasCreditHistory: creditHistory.items.length > 0,
+  };
+}
+
+/**
+ * Queries the selected Provider and fails closed unless every returned
+ * subscription is explicitly canceled. Provider failures propagate unchanged.
+ */
+export async function assertAccountDeletionAllowed(input: {
+  readonly userId: string;
+}): Promise<void> {
+  const subscriptions = await createBillingClient().listSubscriptions(input);
+
+  if (
+    subscriptions.some(
+      (subscription) => subscription.status === 'active' || subscription.status === 'trialing',
+    )
+  ) {
+    throw new AccountDeletionActiveSubscriptionError();
+  }
+
+  if (subscriptions.some((subscription) => subscription.status !== 'canceled')) {
+    throw new AccountDeletionSubscriptionStateError();
+  }
 }
 
 /** Returns the current integer credit balance for a trusted user id. */

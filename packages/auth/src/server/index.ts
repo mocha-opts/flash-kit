@@ -4,6 +4,10 @@ export { auth } from '#auth';
 export { ForbiddenError, UnauthenticatedError } from '#internal/auth-errors';
 export { DEFAULT_AUTH_CALLBACK_PATH, getSafeCallbackPath } from '#internal/safe-callback-path';
 export {
+  deleteCurrentUserAccount,
+  SessionNotFreshError,
+} from './account-deletion';
+export {
   getLinkedAccountSummaries,
   type LinkedAccountSummary,
 } from './account-linking';

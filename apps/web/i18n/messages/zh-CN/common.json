@@ -38,6 +38,8 @@
     "billing": "计费"
   },
   "actions": {
+    "accountDeletionActiveSubscription": "请先取消有效或试用中的订阅，再删除账户。",
+    "accountDeletionSubscriptionState": "支付服务商返回的订阅状态尚未明确安全取消。请先在计费设置中处理后再试。",
     "unauthenticated": "登录状态已结束，请重新登录。",
     "recentSession": "此敏感操作需要近期登录，请重新登录后再试。",
     "forbidden": "你没有执行此操作的权限。",
@@ -434,6 +436,27 @@
         "validation": {
           "emailInvalid": "请输入有效的邮箱地址。",
           "callbackInvalid": "无法完成此请求。"
+        }
+      },
+      "accountDeletion": {
+        "title": "删除账户",
+        "description": "永久删除此账户及其本地产品数据。此操作无法撤销。",
+        "dataLoss": "你的个人资料、会话、关联登录账号、项目、本地购买记录与本地额度记录都会被删除。",
+        "lifetimeLoss": "你的终身版权益保存在本地，删除账户后将永久失去。",
+        "creditLoss": "你的额度余额（{balance}）与完整额度历史将永久丢失。",
+        "subscriptionNotice": "删除前，我们会立即向当前支付服务商核实订阅。有效、试用、逾期或未知状态都会阻止删除。如有订阅，请先<billingLink>查看计费设置</billingLink>。",
+        "open": "删除账户",
+        "close": "关闭账户删除确认",
+        "confirmTitle": "永久删除此账户？",
+        "confirmDescription": "这是最终确认。继续前，请准确输入下方确认短语。",
+        "confirmationLabel": "确认短语",
+        "confirmationHelp": "请输入大写 DELETE。",
+        "cancel": "保留账户",
+        "confirm": "永久删除账户",
+        "submitting": "正在核实并删除……",
+        "requestFailed": "暂时无法删除此账户。删除尚未完成，请稍后再试。",
+        "validation": {
+          "confirmationInvalid": "请输入准确的 DELETE，以确认永久删除。"
         }
       },
       "emailChangeStatus": {

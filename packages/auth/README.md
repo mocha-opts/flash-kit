@@ -5,11 +5,11 @@
 `@repo/auth` owns the Better Auth server/client boundary, validated auth configuration,
 database-backed session helpers, Magic Link and configured Google/GitHub sign-in, explicit account
 linking, the admin role boundary, safe Admin user/session mutations, auth rate limits, and the
-Profile/Security server capabilities.
+Profile/Security server capabilities, including the fresh-session account-deletion boundary.
 Profile updates target the Better Auth `user` row directly; Session view models omit session tokens.
 
 It does not implement passwords, OTP, MFA, passkeys, organizations, invitations, impersonation,
-account deletion, billing workflows, provider SDKs, or admin UI. Its only Billing integration is
+billing policy, provider SDKs, or admin UI. Its only Billing integration is
 installing the official Better Auth plugin returned by the public `@repo/billing/server` seam and
 injecting the two semantic Billing email senders at that composition root.
 
@@ -26,7 +26,7 @@ and any client export that can reach server configuration, database state, or se
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, safe linked-account summaries, Profile/Session view and mutation helpers, Admin ban/unban/session revocation, email-change request, session revocation, and safe callback paths. |
+| `@repo/auth/server` | `src/server/index.ts` | Better Auth instance, request-scoped session/user/admin helpers, safe linked-account summaries, Profile/Session view and mutation helpers, Admin ban/unban/session revocation, email-change request, fresh-session account deletion, session revocation, and safe callback paths. |
 | `@repo/auth/client` | `src/client/index.ts` | Restricted Magic Link, social sign-in, explicit social-link, and unlink request APIs; no raw auth client or provider-token API. |
 | `@repo/auth/config` | `src/config/index.ts` | Server-only validated auth configuration, schema, and enabled OAuth provider contract. |
 | `@repo/auth/components` | `src/components/index.ts` | Client component boundary types; route-specific sign-in and Security UI stays in the Web app. |
@@ -117,6 +117,12 @@ change-email hook: the recent-session request creates a hashed, one-use, expirin
 record and awaits both localized messages. Verification consumes the record, updates the email,
 and revokes all sessions except the initiating session in one Better Auth adapter transaction;
 success and failure redirects contain only fixed status flags.
+
+Account deletion deliberately keeps Better Auth's generic `/delete-user` endpoint disabled. The
+confirmed application action performs the Provider-neutral Billing preflight first, then
+`deleteCurrentUserAccount` re-reads the authoritative Better Auth session, applies the configured
+freshness window, and calls the narrow DB deletion query. A client-provided user id is never
+accepted.
 
 Billing notifications are composed in `plugins/billing.ts`: provider-neutral receipt and
 payment-failed facts from `@repo/billing/server` are mapped to the semantic senders exported by

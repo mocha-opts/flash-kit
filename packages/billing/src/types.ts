@@ -259,6 +259,13 @@ export type CreditManagementView = {
   readonly transactions: CreditManagementTransactionsPage;
 };
 
+/** Local-only facts shown before the user starts the destructive deletion flow. */
+export type AccountDeletionPreview = {
+  readonly hasLifetimeAccess: boolean;
+  readonly creditBalance: number;
+  readonly hasCreditHistory: boolean;
+};
+
 /** Purchase states kept by the local one-time billing ledger. */
 export type BillingPurchaseStatus = 'paid' | 'refunded' | 'partially_refunded' | 'disputed';
 
@@ -388,6 +395,24 @@ export class ActiveSubscriptionExistsError extends Error {
   override readonly name = 'ActiveSubscriptionExistsError';
 
   constructor(message = 'The user already has an active or trialing subscription.') {
+    super(message);
+  }
+}
+
+/** An active or trialing Provider subscription must be handled before account deletion. */
+export class AccountDeletionActiveSubscriptionError extends Error {
+  override readonly name = 'AccountDeletionActiveSubscriptionError';
+
+  constructor(message = 'An active or trialing subscription blocks account deletion.') {
+    super(message);
+  }
+}
+
+/** Every Provider subscription must be explicitly canceled before account deletion. */
+export class AccountDeletionSubscriptionStateError extends Error {
+  override readonly name = 'AccountDeletionSubscriptionStateError';
+
+  constructor(message = 'The provider returned a subscription state that is not canceled.') {
     super(message);
   }
 }

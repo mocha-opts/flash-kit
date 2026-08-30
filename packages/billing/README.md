@@ -64,7 +64,7 @@ implementation-only dependencies and are never re-exported.
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary, including Credit reads, atomic consumption, and trusted Admin adjustment. |
+| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary, including Credit reads, atomic consumption, trusted Admin adjustment, local deletion preview, and Provider account-deletion preflight. |
 | `@repo/billing/config` | `src/config/index.ts` | Provider and catalog configuration type boundary. |
 | `@repo/billing/types` | `src/types.ts` | Provider-neutral public billing types. |
 | `@repo/billing/components` | `src/components.ts` | Billing component type boundary. |
@@ -119,6 +119,13 @@ signed integer range, writes the balance, and appends an `adjustment`
 transaction in one database transaction. Billing generates the unique
 reference id and fixes `referenceType` to `adjustment`; neither value comes from
 the browser. Admin adjustments may intentionally produce a negative balance.
+
+Account deletion renders `getAccountDeletionPreview` from local Lifetime and Credit facts; page
+loading never depends on Provider availability. The destructive action calls
+`assertAccountDeletionAllowed` immediately before Auth deletion. That preflight queries the
+selected Provider and permits only no subscriptions or subscriptions explicitly normalized as
+`canceled`; `active`, `trialing`, `past_due`, and `unknown` all fail closed. Provider failures stay
+`BillingUnavailableError` and must block deletion.
 
 The Catalog is assembled once in `config/billing-catalog.ts` and parsed again
 with Zod at module initialization. It contains stable feature/limit keys,
