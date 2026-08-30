@@ -37,7 +37,7 @@ Put env schemas beside the config they validate. Keep provider-specific checks c
 
 ## Security notes
 
-Client env statically selects `NEXT_PUBLIC_*` fields and never receives the whole process environment. Production site URLs must be HTTPS and have no trailing slash. Missing selected-provider secrets fail at module initialization.
+Client env statically selects `NEXT_PUBLIC_*` fields and never receives the whole process environment. Production site URLs must be HTTPS and have no trailing slash. Missing selected-provider secrets fail at module initialization. `ENABLE_STRICT_CSP` is a server-only boolean flag that defaults to false; the Web app honors it only in production because per-request nonces require dynamic rendering.
 
 ## Validation command
 

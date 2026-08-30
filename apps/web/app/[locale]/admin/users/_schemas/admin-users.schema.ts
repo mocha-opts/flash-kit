@@ -25,7 +25,7 @@ export const adminUsersSearchParamsSchema = z.object({
 });
 
 /** Search/filter form contract used by the interactive client leaf. */
-export const adminUserFilterFormSchema = z.object({
+export const adminUserFilterFormSchema = z.strictObject({
   search: z.string().trim().max(100, { error: 'searchTooLong' }),
   role: z.enum(adminUserRoles),
   status: z.enum(adminUserStatuses),
@@ -33,7 +33,7 @@ export const adminUserFilterFormSchema = z.object({
 });
 
 /** Target-user contract shared by all Admin Server Actions. */
-export const adminUserActionSchema = z.object({
+export const adminUserActionSchema = z.strictObject({
   userId: z.string().uuid({ error: 'userInvalid' }),
 });
 

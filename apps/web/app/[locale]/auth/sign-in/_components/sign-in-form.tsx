@@ -1,15 +1,15 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signInWithMagicLink, signInWithSocial, type OAuthProvider } from '@repo/auth/client';
+import { type OAuthProvider, signInWithMagicLink, signInWithSocial } from '@repo/auth/client';
 import { useRouter } from '@repo/i18n/navigation';
 import { buttonVariants } from '@repo/ui/button';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const signInSchema = z.object({
-  email: z.email(),
+const signInSchema = z.strictObject({
+  email: z.email().max(254),
 });
 
 type SignInValues = z.infer<typeof signInSchema>;

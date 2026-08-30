@@ -7,7 +7,7 @@ import { getTranslations } from '@repo/i18n/server';
 import { revalidatePath } from 'next/cache';
 import { returnServerError } from 'next-safe-action';
 
-import { authenticatedAction, getSafeActionError } from '@/lib/actions/action-clients';
+import { authenticatedAction } from '@/lib/actions/action-clients';
 
 import { creditConsumptionSchema } from '../_schemas/credit-consumption.schema';
 
@@ -50,7 +50,7 @@ export const consumeCreditsAction = authenticatedAction
         return returnServerError({ message: translations('errors.referenceConflict') });
       }
 
-      return returnServerError(await getSafeActionError('generic', ctx.locale));
+      throw error;
     }
   });
 

@@ -6,6 +6,7 @@ import * as schema from '@repo/db/schema';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { authConfig } from '#config/auth-config';
+import { safeAuthLogger } from '#internal/safe-auth-logger';
 import { adminPlugin } from '#plugins/admin';
 import { billingPlugin } from '#plugins/billing';
 import { emailChangePlugin } from '#plugins/email-change';
@@ -18,6 +19,7 @@ export const auth = betterAuth({
   baseURL: authConfig.baseURL,
   basePath: authConfig.basePath,
   secret: serverEnv.BETTER_AUTH_SECRET,
+  logger: safeAuthLogger,
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,

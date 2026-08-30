@@ -4,21 +4,21 @@ import { useTranslations } from 'next-intl';
 
 import { SafeRouteError } from '@/components/safe-route-error';
 
-type ProjectsErrorProps = {
+type AppErrorProps = {
   readonly error: Error & { digest?: string };
   readonly reset: () => void;
 };
 
-/** Route-level safe error boundary for the Project example. */
-export default function ProjectsError({ error, reset }: ProjectsErrorProps) {
-  const t = useTranslations('projects.error');
+/** Authenticated-app fallback for routes without a narrower safe boundary. */
+export default function AppError({ error, reset }: AppErrorProps) {
+  const t = useTranslations('errorBoundary');
 
   return (
     <SafeRouteError
       description={t('description')}
       error={error}
       eyebrow={t('eyebrow')}
-      formatRequestId={(requestId) => t('reference', { digest: requestId })}
+      formatRequestId={(requestId) => t('reference', { requestId })}
       reset={reset}
       retry={t('retry')}
       title={t('title')}

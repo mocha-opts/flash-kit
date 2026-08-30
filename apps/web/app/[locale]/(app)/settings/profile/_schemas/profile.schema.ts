@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /** Shared display-name contract used by both the client form and Server Action. */
-export const updateDisplayNameSchema = z.object({
+export const updateDisplayNameSchema = z.strictObject({
   name: z
     .string({ error: 'nameInvalid' })
     .trim()

@@ -13,18 +13,14 @@ import { updateDisplayNameSchema } from '../_schemas/profile.schema';
 export const updateDisplayNameAction = authenticatedAction
   .inputSchema(updateDisplayNameSchema)
   .action(async ({ ctx, parsedInput }) => {
-    try {
-      const profile = await updateCurrentDisplayName(parsedInput.name);
+    const profile = await updateCurrentDisplayName(parsedInput.name);
 
-      if (profile.id !== ctx.user.id) {
-        return returnServerError(await getSafeActionError('generic'));
-      }
-
-      revalidatePath(getLocalizedPathname({ locale: ctx.locale, pathname: '/settings/profile' }));
-      revalidatePath(getLocalizedPathname({ locale: ctx.locale, pathname: '/dashboard' }));
-
-      return { name: profile.name };
-    } catch {
+    if (profile.id !== ctx.user.id) {
       return returnServerError(await getSafeActionError('generic'));
     }
+
+    revalidatePath(getLocalizedPathname({ locale: ctx.locale, pathname: '/settings/profile' }));
+    revalidatePath(getLocalizedPathname({ locale: ctx.locale, pathname: '/dashboard' }));
+
+    return { name: profile.name };
   });

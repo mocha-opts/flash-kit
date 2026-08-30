@@ -49,6 +49,13 @@
     "billingUnavailable": "计费服务暂时不可用，请稍后再试。",
     "lifetimePurchaseExists": "你的账户已经拥有终身版权限。"
   },
+  "errorBoundary": {
+    "eyebrow": "请求已中断",
+    "title": "此页面未能完成加载。",
+    "description": "页面不会显示私密错误详情。请重试；如需支持，请保留请求 ID。",
+    "retry": "重试",
+    "reference": "请求 ID：{requestId}"
+  },
   "billing": {
     "eyebrow": "私有区域 / 计费",
     "title": "让每一次交换都清晰可见。",
@@ -201,7 +208,7 @@
       "title": "无法加载计费数据。",
       "description": "计费页面加载失败，请稍后重试。",
       "retry": "重试",
-      "reference": "参考编号：{digest}"
+      "reference": "请求 ID：{digest}"
     }
   },
   "landing": {
@@ -397,7 +404,7 @@
         "title": "暂时无法打开安全设置。",
         "description": "安全设置页面加载失败，请稍后再试。",
         "retry": "重试",
-        "reference": "参考编号：{digest}"
+        "reference": "请求 ID：{digest}"
       },
       "sessions": {
         "title": "活跃会话",
@@ -490,7 +497,7 @@
       "title": "暂时无法打开个人资料设置。",
       "description": "个人资料页面加载失败，请稍后再试。",
       "retry": "重试",
-      "reference": "参考编号：{digest}"
+      "reference": "请求 ID：{digest}"
     }
   },
   "projects": {
@@ -579,7 +586,7 @@
       "title": "暂时无法打开项目。",
       "description": "项目页面加载失败，请稍后重试。",
       "retry": "重试",
-      "reference": "参考编号：{digest}"
+      "reference": "请求 ID：{digest}"
     }
   },
   "admin": {
@@ -703,7 +710,7 @@
       "title": "暂时无法加载管理数据。",
       "description": "管理页面加载失败，请稍后重试。",
       "retry": "重试",
-      "reference": "参考编号：{digest}"
+      "reference": "请求 ID：{digest}"
     }
   },
   "dashboard": {

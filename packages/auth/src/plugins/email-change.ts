@@ -17,22 +17,25 @@ import { authConfig } from '#config/auth-config';
 import { resolveAuthEmailLocale } from '#internal/magic-link-context';
 import { getSafeCallbackPath } from '#internal/safe-callback-path';
 
-const emailChangeRequestBody = z.object({
-  newEmail: z.email().transform((email) => email.trim().toLowerCase()),
-  callbackURL: z.string().optional(),
+const emailChangeRequestBody = z.strictObject({
+  newEmail: z
+    .email()
+    .max(254)
+    .transform((email) => email.trim().toLowerCase()),
+  callbackURL: z.string().max(512).optional(),
   locale: z.enum(['en', 'zh-CN']).optional(),
 });
 
-const emailChangeVerificationQuery = z.object({
-  token: z.string().min(1),
-  callbackURL: z.string().optional(),
+const emailChangeVerificationQuery = z.strictObject({
+  token: z.string().min(1).max(512),
+  callbackURL: z.string().max(512).optional(),
 });
 
-const emailChangeValue = z.object({
-  userId: z.string().min(1),
-  oldEmail: z.email(),
-  newEmail: z.email(),
-  initiatedSessionId: z.string().min(1),
+const emailChangeValue = z.strictObject({
+  userId: z.string().min(1).max(200),
+  oldEmail: z.email().max(254),
+  newEmail: z.email().max(254),
+  initiatedSessionId: z.string().min(1).max(200),
 });
 
 const EMAIL_CHANGE_ERROR_CODE = 'EMAIL_CHANGE_FAILED';

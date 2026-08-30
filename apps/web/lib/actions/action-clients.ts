@@ -72,7 +72,7 @@ export const adminAction = authenticatedAction.use(async ({ next }) => {
       return returnServerError(await getSafeActionError('forbidden'));
     }
 
-    return returnServerError(await getSafeActionError('generic'));
+    throw error;
   }
 
   return await next();

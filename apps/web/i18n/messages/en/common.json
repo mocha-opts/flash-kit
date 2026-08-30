@@ -49,6 +49,13 @@
     "billingUnavailable": "Billing is temporarily unavailable. Please try again later.",
     "lifetimePurchaseExists": "Your account already owns Lifetime access."
   },
+  "errorBoundary": {
+    "eyebrow": "REQUEST INTERRUPTED",
+    "title": "This page could not finish loading.",
+    "description": "No private error details were exposed. Try the request again, or keep the request ID if you need support.",
+    "retry": "Try again",
+    "reference": "Request ID: {requestId}"
+  },
   "billing": {
     "eyebrow": "PRIVATE / BILLING",
     "title": "Keep the exchange legible.",
@@ -201,7 +208,7 @@
       "title": "Billing data could not be loaded.",
       "description": "We could not load this billing page. Please try again.",
       "retry": "Try again",
-      "reference": "Reference: {digest}"
+      "reference": "Request ID: {digest}"
     }
   },
   "landing": {
@@ -397,7 +404,7 @@
         "title": "Security settings are unavailable right now.",
         "description": "We could not load this security page. Please try again.",
         "retry": "Try again",
-        "reference": "Reference: {digest}"
+        "reference": "Request ID: {digest}"
       },
       "sessions": {
         "title": "Active sessions",
@@ -490,7 +497,7 @@
       "title": "Profile settings are unavailable right now.",
       "description": "We could not load this profile page. Please try again.",
       "retry": "Try again",
-      "reference": "Reference: {digest}"
+      "reference": "Request ID: {digest}"
     }
   },
   "projects": {
@@ -579,7 +586,7 @@
       "title": "Projects are unavailable right now.",
       "description": "We could not load this project page. Please try again.",
       "retry": "Try again",
-      "reference": "Reference: {digest}"
+      "reference": "Request ID: {digest}"
     }
   },
   "admin": {
@@ -703,7 +710,7 @@
       "title": "Admin data is unavailable right now.",
       "description": "We could not load this admin page. Please try again.",
       "retry": "Try again",
-      "reference": "Reference: {digest}"
+      "reference": "Request ID: {digest}"
     }
   },
   "dashboard": {

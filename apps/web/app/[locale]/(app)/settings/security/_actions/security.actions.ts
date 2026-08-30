@@ -70,14 +70,8 @@ export const revokeSessionAction = authenticatedAction
       locale: ctx.locale,
       pathname: '/settings/security',
     });
-    let result: Awaited<ReturnType<typeof revokeCurrentSession>>;
-
-    try {
-      result = await revokeCurrentSession(parsedInput.sessionId);
-      revalidatePath(securityPath);
-    } catch {
-      return returnServerError(await getSafeActionError('generic'));
-    }
+    const result = await revokeCurrentSession(parsedInput.sessionId);
+    revalidatePath(securityPath);
 
     if (result.currentSessionRevoked) {
       redirect(getLocalizedPathname({ locale: ctx.locale, pathname: '/auth/sign-in' }));
@@ -90,13 +84,9 @@ export const revokeSessionAction = authenticatedAction
 export const revokeOtherSessionsAction = authenticatedAction
   .inputSchema(revokeOtherSessionsSchema)
   .action(async ({ ctx }) => {
-    try {
-      const result = await revokeCurrentOtherSessions();
-      revalidatePath(getLocalizedPathname({ locale: ctx.locale, pathname: '/settings/security' }));
-      return { revokedCount: result.revokedCount };
-    } catch {
-      return returnServerError(await getSafeActionError('generic'));
-    }
+    const result = await revokeCurrentOtherSessions();
+    revalidatePath(getLocalizedPathname({ locale: ctx.locale, pathname: '/settings/security' }));
+    return { revokedCount: result.revokedCount };
   });
 
 /** Requests a localized, recent-session-protected email change through the auth package boundary. */
@@ -116,9 +106,11 @@ export const requestEmailChangeAction = authenticatedAction
         newEmail: parsedInput.newEmail,
       });
     } catch (error) {
-      return returnServerError(
-        await getSafeActionError(isSessionNotFreshError(error) ? 'recentSession' : 'generic'),
-      );
+      if (isSessionNotFreshError(error)) {
+        return returnServerError(await getSafeActionError('recentSession'));
+      }
+
+      throw error;
     }
 
     return { requested: true };

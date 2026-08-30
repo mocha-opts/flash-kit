@@ -16,7 +16,7 @@ const projectDescriptionSchema = z
   .max(2_000, { error: 'descriptionTooLong' })
   .optional();
 
-export const projectFormSchema = z.object({
+export const projectFormSchema = z.strictObject({
   name: projectNameSchema,
   description: projectDescriptionSchema,
 });
@@ -33,7 +33,7 @@ export const updateProjectSchema = projectFormSchema.extend({
   projectId: projectIdSchema,
 });
 
-export const projectOwnershipSchema = z.object({
+export const projectOwnershipSchema = z.strictObject({
   projectId: projectIdSchema,
 });
 
