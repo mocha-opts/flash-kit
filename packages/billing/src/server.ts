@@ -2,18 +2,27 @@ import 'server-only';
 
 import type { BetterAuthPlugin } from '@better-auth/core';
 import { db, withTransaction } from '@repo/db/client';
-import { getCreditBalanceForUser, listCreditTransactionsForUser } from '@repo/db/queries/billing';
+import {
+  type CreditTransactionWithPurchase,
+  getBillingUser,
+  getCreditBalanceForUser,
+  listCreditTransactionsForUser,
+} from '@repo/db/queries/billing';
 
 import { createBillingPlugin } from '#better-auth/create-billing-plugin';
 import { createBillingClient } from '#billing/create-billing-client';
+import { adjustCreditsInputSchema, adjustCreditsInTransaction } from '#credits/adjust-credits';
 import { consumeCreditsInputSchema, consumeCreditsInTransaction } from '#credits/consume-credits';
 import type {
   ActivePlan,
+  AdjustCreditsInput,
+  AdjustCreditsResult,
   BillingClient,
   BillingNotificationOptions,
   ConsumeCreditsInput,
   ConsumeCreditsResult,
   CreditBalance,
+  CreditManagementView,
   CreditTransactionsInput,
   CreditTransactionsPage,
   CreditTransactionView,
@@ -85,28 +94,43 @@ export async function listCreditTransactions(
     page,
     limit,
     hasNext: result.hasNext,
-    items: result.items.map(
-      ({ transaction, purchase }): CreditTransactionView => ({
-        id: transaction.id,
-        type: transaction.type,
-        amount: transaction.amount,
-        balanceAfter: transaction.balanceAfter,
-        description: transaction.description,
-        referenceType: transaction.referenceType,
-        referenceId: transaction.referenceId,
-        createdAt: transaction.createdAt.toISOString(),
-        purchase: purchase
-          ? {
-              id: purchase.id,
-              provider: purchase.provider,
-              planId: purchase.planId,
-              amount: purchase.amount,
-              currency: purchase.currency,
-              purchasedAt: purchase.purchasedAt.toISOString(),
-            }
-          : null,
-      }),
-    ),
+    items: result.items.map(toCreditTransactionView),
+  };
+}
+
+/**
+ * Loads one target user's identity, current balance, and recent immutable
+ * history for a caller that has already enforced its management authorization.
+ */
+export async function getCreditManagementView(input: {
+  readonly userId: string;
+  readonly limit?: number;
+}): Promise<CreditManagementView | null> {
+  const user = await getBillingUser(input.userId);
+
+  if (!user) {
+    return null;
+  }
+
+  const page = 1;
+  const limit = normalizeLimit(input.limit);
+  const [balance, transactions] = await Promise.all([
+    getCreditBalance({ userId: user.id }),
+    listCreditTransactionsForUser({ userId: user.id, page, limit }),
+  ]);
+
+  return {
+    user: { id: user.id, name: user.name, email: user.email },
+    balance,
+    transactions: {
+      page,
+      limit,
+      hasNext: transactions.hasNext,
+      items: transactions.items.map((item) => ({
+        ...toCreditTransactionView(item),
+        actorUserId: item.transaction.actorUserId,
+      })),
+    },
   };
 }
 
@@ -122,7 +146,45 @@ export async function consumeCredits(input: ConsumeCreditsInput): Promise<Consum
   );
 }
 
-export { consumeCreditsInputSchema };
+/**
+ * Atomically applies a signed Credit adjustment for a caller that has already
+ * authorized the actor as an Admin. This private server API is not an HTTP route.
+ */
+export async function adjustCredits(input: AdjustCreditsInput): Promise<AdjustCreditsResult> {
+  const normalized = adjustCreditsInputSchema.parse(input);
+
+  return await withTransaction(db, async (transaction) =>
+    adjustCreditsInTransaction(transaction, normalized),
+  );
+}
+
+export { adjustCreditsInputSchema, consumeCreditsInputSchema };
+
+function toCreditTransactionView({
+  transaction,
+  purchase,
+}: CreditTransactionWithPurchase): CreditTransactionView {
+  return {
+    id: transaction.id,
+    type: transaction.type,
+    amount: transaction.amount,
+    balanceAfter: transaction.balanceAfter,
+    description: transaction.description,
+    referenceType: transaction.referenceType,
+    referenceId: transaction.referenceId,
+    createdAt: transaction.createdAt.toISOString(),
+    purchase: purchase
+      ? {
+          id: purchase.id,
+          provider: purchase.provider,
+          planId: purchase.planId,
+          amount: purchase.amount,
+          currency: purchase.currency,
+          purchasedAt: purchase.purchasedAt.toISOString(),
+        }
+      : null,
+  };
+}
 
 function normalizePage(page: number | undefined): number {
   if (page === undefined) {

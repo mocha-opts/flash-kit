@@ -7,10 +7,10 @@ import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 
 import {
+  type AdminUserFilterFormInput,
   adminUserFilterFormSchema,
   adminUserRoles,
   adminUserStatuses,
-  type AdminUserFilterFormInput,
 } from '../_schemas/admin-users.schema';
 
 type AdminUserFiltersProps = {

@@ -1,10 +1,10 @@
 'use client';
 
 import type { Locale } from '@repo/i18n/config';
-import { useRouter } from '@repo/i18n/navigation';
+import { Link, useRouter } from '@repo/i18n/navigation';
 import { buttonVariants } from '@repo/ui/button';
 import { useTranslations } from 'next-intl';
-import { useState, type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 
 import {
   banUserAction,
@@ -143,6 +143,13 @@ export function AdminUsersTable({ locale, users }: AdminUsersTableProps) {
               </dl>
 
               <div className="flex min-w-0 flex-wrap gap-2 border-t border-border pt-4">
+                <Link
+                  className={buttonVariants({ variant: 'secondary', size: 'sm' })}
+                  href={`/admin/users/${user.id}/credits`}
+                  locale={locale}
+                >
+                  {t('actions.manageCredits')}
+                </Link>
                 {user.banned ? (
                   <button
                     className={buttonVariants({ variant: 'secondary', size: 'sm' })}

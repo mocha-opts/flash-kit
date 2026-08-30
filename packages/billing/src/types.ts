@@ -238,6 +238,27 @@ export type CreditTransactionsInput = UserBillingInput & {
   readonly limit?: number;
 };
 
+/** Credit history entry with actor metadata visible only to Admin callers. */
+export type CreditManagementTransactionView = CreditTransactionView & {
+  readonly actorUserId: string | null;
+};
+
+/** Recent Credit history with the actor metadata visible only to Admin callers. */
+export type CreditManagementTransactionsPage = Omit<CreditTransactionsPage, 'items'> & {
+  readonly items: readonly CreditManagementTransactionView[];
+};
+
+/** Server-rendered data for a trusted Credit management surface. */
+export type CreditManagementView = {
+  readonly user: {
+    readonly id: string;
+    readonly name: string;
+    readonly email: string;
+  };
+  readonly balance: CreditBalance;
+  readonly transactions: CreditManagementTransactionsPage;
+};
+
 /** Purchase states kept by the local one-time billing ledger. */
 export type BillingPurchaseStatus = 'paid' | 'refunded' | 'partially_refunded' | 'disputed';
 
@@ -314,6 +335,24 @@ export type ConsumeCreditsResult = {
   readonly balanceAfter: number;
 };
 
+/** Trusted server-side input for one Admin-authored signed Credit adjustment. */
+export type AdjustCreditsInput = UserBillingInput & {
+  readonly actorUserId: string;
+  readonly amount: number;
+  readonly reason: string;
+};
+
+/** Stable result of one committed, append-only Admin Credit adjustment. */
+export type AdjustCreditsResult = {
+  readonly transactionId: string;
+  readonly userId: string;
+  readonly actorUserId: string;
+  readonly amount: number;
+  readonly balanceAfter: number;
+  readonly reason: string;
+  readonly referenceId: string;
+};
+
 /** Provider-neutral subscription status normalized for application use. */
 export type BillingSubscription = {
   readonly id: string;
@@ -380,6 +419,15 @@ export class CreditConsumptionConflictError extends Error {
   override readonly name = 'CreditConsumptionConflictError';
 
   constructor(message = 'The credit consumption reference is already in use.') {
+    super(message);
+  }
+}
+
+/** An Admin adjustment cannot exceed PostgreSQL's signed integer range. */
+export class CreditAdjustmentOverflowError extends RangeError {
+  override readonly name = 'CreditAdjustmentOverflowError';
+
+  constructor(message = 'The credit adjustment would exceed the PostgreSQL integer limit.') {
     super(message);
   }
 }

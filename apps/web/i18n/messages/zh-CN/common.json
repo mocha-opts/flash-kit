@@ -602,6 +602,7 @@
         "banExpires": "封禁到期"
       },
       "actions": {
+        "manageCredits": "管理额度",
         "ban": "封禁用户",
         "unban": "解除封禁",
         "revokeSessions": "撤销全部会话",
@@ -611,6 +612,60 @@
         "unbanned": "用户已解除封禁。",
         "revoked": "用户的全部会话已撤销。",
         "requestFailed": "暂时无法更新此用户，请重试。"
+      },
+      "credits": {
+        "eyebrow": "管理 / 用户 / 额度",
+        "title": "调整额度余额。",
+        "description": "查看该用户不可变的额度历史，并为人工支持调整留下完整审计记录。",
+        "backToUsers": "返回用户列表",
+        "target": {
+          "label": "目标用户",
+          "balance": "当前余额",
+          "units": "点额度"
+        },
+        "adjustment": {
+          "eyebrow": "人工支持调整",
+          "title": "记录有符号调整",
+          "description": "正数增加额度，负数减少额度。原因、操作管理员、目标用户、变动后余额和服务端生成的参考编号会一起记录。",
+          "balanceLabel": "当前余额",
+          "balanceUnits": "点额度",
+          "amountLabel": "有符号调整值",
+          "amountHelp": "请输入非零整数，例如 25 或 -10。",
+          "reasonLabel": "必填原因",
+          "reasonHelp": "请在 500 个字符以内说明本次支持决定。",
+          "submit": "应用调整",
+          "submitting": "正在调整……",
+          "success": "调整已记录。当前余额：{balance}。",
+          "error": "暂时无法记录本次调整，请检查字段后重试。",
+          "validation": {
+            "amountInvalid": "请输入整数。",
+            "amountRequired": "调整值不能为零。",
+            "amountTooSmall": "负向调整值过大。",
+            "amountTooLarge": "正向调整值过大。",
+            "reasonInvalid": "请输入有效原因。",
+            "reasonRequired": "必须填写原因。",
+            "reasonTooLong": "不能超过 500 个字符。",
+            "invalid": "请检查此字段。"
+          }
+        },
+        "history": {
+          "eyebrow": "额度台账",
+          "title": "近期历史",
+          "description": "该目标用户最新的只追加额度交易记录。",
+          "balanceAfter": "变动后余额",
+          "actor": "操作用户 ID",
+          "reference": "参考编号",
+          "date": "时间",
+          "system": "支付服务商或系统",
+          "empty": "该用户还没有额度活动。",
+          "recentOnly": "当前显示最近 50 条交易。",
+          "types": {
+            "purchase": "购买",
+            "consumption": "使用",
+            "refund": "退款",
+            "adjustment": "管理员调整"
+          }
+        }
       },
       "empty": "没有匹配这些筛选条件的用户。",
       "pagination": {

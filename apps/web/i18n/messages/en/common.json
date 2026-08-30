@@ -602,6 +602,7 @@
         "banExpires": "Ban expires"
       },
       "actions": {
+        "manageCredits": "Manage credits",
         "ban": "Ban user",
         "unban": "Unban user",
         "revokeSessions": "Revoke all sessions",
@@ -611,6 +612,60 @@
         "unbanned": "User unbanned.",
         "revoked": "All user sessions revoked.",
         "requestFailed": "We could not update this user right now. Please try again."
+      },
+      "credits": {
+        "eyebrow": "ADMIN / USERS / CREDITS",
+        "title": "Adjust credit balance.",
+        "description": "Review this user's immutable Credit history and record a manual support adjustment with a complete audit trail.",
+        "backToUsers": "Back to users",
+        "target": {
+          "label": "Target user",
+          "balance": "Current balance",
+          "units": "credits"
+        },
+        "adjustment": {
+          "eyebrow": "SUPPORT ADJUSTMENT",
+          "title": "Record a signed adjustment",
+          "description": "Use a positive value to add credits or a negative value to remove them. The reason, acting Admin, target User, resulting balance, and server-generated reference are stored together.",
+          "balanceLabel": "Current balance",
+          "balanceUnits": "credits",
+          "amountLabel": "Signed adjustment",
+          "amountHelp": "Enter a non-zero whole number, such as 25 or -10.",
+          "reasonLabel": "Required reason",
+          "reasonHelp": "Describe the support decision in 500 characters or fewer.",
+          "submit": "Apply adjustment",
+          "submitting": "Applying adjustment...",
+          "success": "Adjustment recorded. Current balance: {balance}.",
+          "error": "We could not record this adjustment. Check the fields and try again.",
+          "validation": {
+            "amountInvalid": "Enter a whole number.",
+            "amountRequired": "The adjustment cannot be zero.",
+            "amountTooSmall": "The negative adjustment is too large.",
+            "amountTooLarge": "The positive adjustment is too large.",
+            "reasonInvalid": "Enter a valid reason.",
+            "reasonRequired": "A reason is required.",
+            "reasonTooLong": "Use 500 characters or fewer.",
+            "invalid": "Check this field."
+          }
+        },
+        "history": {
+          "eyebrow": "CREDIT LEDGER",
+          "title": "Recent history",
+          "description": "The newest append-only Credit transactions for this target User.",
+          "balanceAfter": "Balance after",
+          "actor": "Actor user ID",
+          "reference": "Reference",
+          "date": "Date",
+          "system": "Provider or system",
+          "empty": "This user has no Credit activity yet.",
+          "recentOnly": "Showing the 50 most recent transactions.",
+          "types": {
+            "purchase": "Purchase",
+            "consumption": "Usage",
+            "refund": "Refund",
+            "adjustment": "Admin adjustment"
+          }
+        }
       },
       "empty": "No users match these filters.",
       "pagination": {

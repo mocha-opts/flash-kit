@@ -64,7 +64,7 @@ implementation-only dependencies and are never re-exported.
 
 | Export | Target | Purpose |
 | --- | --- | --- |
-| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary, including Credit reads and atomic consumption. |
+| `@repo/billing/server` | `src/server.ts` | Server-only billing API boundary, including Credit reads, atomic consumption, and trusted Admin adjustment. |
 | `@repo/billing/config` | `src/config/index.ts` | Provider and catalog configuration type boundary. |
 | `@repo/billing/types` | `src/types.ts` | Provider-neutral public billing types. |
 | `@repo/billing/components` | `src/components.ts` | Billing component type boundary. |
@@ -109,6 +109,16 @@ const consumption = await consumeCredits({
   referenceId: imageId,
 });
 ```
+
+Admin surfaces authorize with `requireAdmin`/`adminAction` before calling the
+trusted `getCreditManagementView` and `adjustCredits` server functions. An
+adjustment accepts only target and actor UUIDs, one non-zero signed integer, and
+a trimmed reason of at most 500 characters. It ensures and locks the target
+Credit Account, verifies the resulting balance remains within PostgreSQL's
+signed integer range, writes the balance, and appends an `adjustment`
+transaction in one database transaction. Billing generates the unique
+reference id and fixes `referenceType` to `adjustment`; neither value comes from
+the browser. Admin adjustments may intentionally produce a negative balance.
 
 The Catalog is assembled once in `config/billing-catalog.ts` and parsed again
 with Zod at module initialization. It contains stable feature/limit keys,
