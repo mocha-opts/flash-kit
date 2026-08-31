@@ -1,0 +1,96 @@
+---
+title: Packages
+description: The seven private Workspace packages and the rules for consuming their public seams.
+---
+
+The package boundary is the main customization seam. A package exposes stable capabilities through
+explicit subpaths in `package.json`; application code never imports `src/**` directly. The seven
+runtime packages are private to this repository but are kept modular so a product can replace or
+remove an implementation without moving unrelated code.
+
+## Package map
+
+| Package | Responsibility | Public runtime entries |
+| --- | --- | --- |
+| `@repo/config` | Validated server/client env, app config, trusted URLs | `env/server`, `env/client`, `app`, `urls` |
+| `@repo/db` | Drizzle client, schema, migrations, grouped queries | `client`, `schema`, `queries/users`, `queries/billing`, `queries/example`, `testing` |
+| `@repo/email` | Mailer boundary, Resend/SMTP, React Email senders/templates | `server`, `templates` |
+| `@repo/billing` | Catalog, provider-neutral client, Credits, purchases, webhook orchestration | `server`, `config`, `types`, `components` |
+| `@repo/auth` | Better Auth composition, session/admin/security helpers | `server`, `client`, `config`, `components` |
+| `@repo/i18n` | Locale config, routing/navigation, server/client helpers | `config`, `routing`, `navigation`, `server`, `client` |
+| `@repo/ui` | Provider-free Tailwind/Radix primitives and theme helpers | `button`, `dialog`, `dropdown-menu`, `theme`, `utils`, `styles.css` |
+
+## Main runtime dependency families
+
+The table lists the actual runtime families declared by each package's `dependencies`. Exact
+versions are intentionally omitted here; the workspace catalog and lockfile own version
+selection. Workspace dependencies are shown separately so the package graph remains clear.
+
+| Package | Runtime third-party families | Workspace dependencies |
+| --- | --- | --- |
+| `@repo/config` | Zod, `server-only` | — |
+| `@repo/db` | Drizzle ORM, postgres.js, `server-only` | `@repo/config` |
+| `@repo/email` | React Email, Resend, Nodemailer, React/React DOM, `server-only`, Zod | `@repo/config` |
+| `@repo/billing` | Better Auth core/Stripe integrations, Polar Better Auth/SDK, Stripe SDK, React, `server-only`, Zod | `@repo/config`, `@repo/db` |
+| `@repo/auth` | Better Auth core, Better Auth, Next.js, React, `server-only`, Zod | `@repo/billing`, `@repo/config`, `@repo/db`, `@repo/email` |
+| `@repo/i18n` | next-intl, React, `server-only` | — |
+| `@repo/ui` | Radix UI, Tailwind CSS/class utilities (`class-variance-authority`, `clsx`, `tailwind-merge`), next-themes, React | — |
+
+`drizzle-kit`, TypeScript, type packages, and `@repo/tsconfig` are development/tooling
+dependencies rather than runtime families in this table. The package manifests remain the source
+of truth if a future capability adds or removes a family.
+
+## Dependency direction
+
+```text
+apps/web ──> auth + billing + config + db + i18n + ui
+auth ──> config + db + email + billing
+billing ──> config + db
+email ──> config
+db ──> config
+i18n (independent)
+ui (independent)
+apps/docs ──> Fumadocs
+```
+
+Arrows use the consumer → dependency direction. This diagram shows workspace-package
+relationships; third-party framework/provider dependencies are omitted. `billing` does not
+depend on `auth`; `auth` installs the plugin returned by
+`@repo/billing/server`. `ui` does not know about sessions or billing. `email` owns its React Email
+components and never imports browser UI. No Users or Credits package is needed: Better Auth owns
+users and Billing owns Credit orchestration over DB tables.
+
+## Server and client rules
+
+- Server entries begin with `import 'server-only'` and may read configuration, sessions, DB, or
+  provider SDKs.
+- Client entries contain only browser-safe APIs and serializable types. They never re-export server
+  runtime code, secrets, Provider SDKs, or database state.
+- A React component marks its own client boundary with `'use client'`; do not make an entire
+  package client-only to support one leaf component.
+- Provider SDKs, raw webhook hooks, database adapters, generated schema internals, and
+  `internal/**` files are never exported.
+
+## Usage examples
+
+```ts
+import { serverEnv } from '@repo/config/env/server';
+import { db } from '@repo/db/client';
+import { getCreditBalance } from '@repo/billing/server';
+import { requireUser } from '@repo/auth/server';
+import { Link } from '@repo/i18n/navigation';
+import { Button } from '@repo/ui/button';
+```
+
+`@repo/i18n/navigation`'s `Link` works in both Server and Client Components. Use it for localized
+links; `usePathname`, `useRouter`, and other navigation hooks are Client Component-only. Server
+Components should not use those hooks, but they do not need a different `Link`. `sendWelcomeEmail`
+remains a documented compatibility extension on `@repo/email/server`, but no current welcome
+template or product flow invokes it.
+
+## Where code belongs
+
+Use feature folders plus small responsibility folders: `api/` for a stable programmatic API,
+`config/` for package configuration, `providers/` for external implementations, `components/`
+for cross-route UI, and `internal/` for non-public cross-feature helpers. Keep route-specific
+schemas, loaders, actions, and UI next to their route under `apps/web/app/[locale]`.

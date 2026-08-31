@@ -1,0 +1,99 @@
+---
+title: Getting Started
+description: Install Flash Kit, prepare local services, and run the first request.
+---
+
+Flash Kit is a pnpm workspace. The `web` app owns the product runtime, while `docs` is an
+independent Next.js application backed by Fumadocs. You can run either app without a Queue,
+Worker, Cron process, Redis instance, or Observability service.
+
+## Prerequisites
+
+- Node.js `24.19.0` (the repository engine requirement).
+- pnpm `11.23.0`.
+- Docker with Compose support for local PostgreSQL and Mailpit.
+
+The repository's setup probe checks those versions, Docker, and `apps/web/.env.local`:
+
+```bash
+pnpm setup
+```
+
+The current machine must satisfy the version check before treating a local build as release
+evidence. A different Node patch version can produce different native dependency or Turbopack
+results.
+
+## Install and configure
+
+Install from the lockfile, copy the committed example environment file, and replace only the
+values that you want to enable:
+
+```bash
+pnpm install --frozen-lockfile
+cp apps/web/.env.example apps/web/.env.local
+```
+
+The Web app reads its environment from `apps/web/.env.local` during development. The complete
+variable contract and the provider-specific requirements are in
+[Configuration](/docs/getting-started/configuration).
+
+## Start local services and migrate
+
+Start PostgreSQL 18 on port `54333` and Mailpit on SMTP port `1025` / UI port `8025`:
+
+```bash
+pnpm compose:up
+pnpm --filter @repo/db auth:generate
+export DATABASE_URL='postgres://flash_kit:flash_kit@localhost:54333/flash_kit'
+pnpm --filter @repo/db drizzle:migrate
+```
+
+`auth:generate` loads the committed development env defaults and invokes the Better Auth CLI to
+regenerate `packages/db/src/schema/core.ts`. That file is generated and is not a hand-edited
+schema. Drizzle Kit reads only `process.env.DATABASE_URL` from the current shell; it does not load
+`apps/web/.env.local` automatically. Export the URL before every `drizzle:generate` or
+`drizzle:migrate` command, keeping it identical to the value in `.env.local`. `drizzle:migrate`
+applies reviewed SQL from `packages/db/drizzle/` and never runs during Next.js build or application
+startup.
+
+## Run the apps
+
+Start only the Web app and open `http://localhost:3000`:
+
+```bash
+pnpm --filter web dev
+```
+
+The root `pnpm dev` script runs Turbo for both the Web and Docs applications. Use it only when
+you want both apps started together; the filtered command above keeps this workflow explicit.
+
+Start only the documentation app on `http://localhost:3001`:
+
+```bash
+pnpm --filter docs dev
+```
+
+The docs site is served at `/docs`. Search opens with `Ctrl+K` or `⌘K` and calls the local
+`/api/search` Route Handler.
+
+## Useful checks
+
+```bash
+pnpm deps:check
+pnpm --filter docs typecheck
+pnpm --filter docs build
+```
+
+`deps:check` validates workspace dependency declarations. Docs production build compiles MDX,
+creates static routes, and renders the documentation page tree. The dynamic `/api/search` handler
+builds the Fumadocs search index on its first request and caches it in the server process. The
+complete repository checks are described in [Testing](/docs/testing) and [Deployment](/docs/deployment).
+
+## Stop local services
+
+```bash
+pnpm compose:down
+```
+
+The named Docker volume is retained by Compose. Remove it only when you intentionally want to
+discard local database state.

@@ -1,0 +1,61 @@
+---
+title: Catalog and checkout
+description: Configure Products and Prices, render plans, and use the Provider-neutral checkout API.
+---
+
+## Configure the selected provider
+
+For Stripe, set the secret, webhook secret, and each Product/Price pair:
+
+```ini
+BILLING_PROVIDER=stripe
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRODUCT_PRO_MONTHLY=prod_...
+STRIPE_PRICE_PRO_MONTHLY=price_...
+STRIPE_PRODUCT_PRO_YEARLY=prod_...
+STRIPE_PRICE_PRO_YEARLY=price_...
+STRIPE_PRODUCT_LIFETIME=prod_...
+STRIPE_PRICE_LIFETIME=price_...
+STRIPE_PRODUCT_CREDIT_PACK_100=prod_...
+STRIPE_PRICE_CREDIT_PACK_100=price_...
+```
+
+For Polar, set `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, and the matching `POLAR_PRODUCT_*`
+fields. Polar checkout uses Product IDs; Price IDs are optional in the schema but may be supplied
+for Catalog validation and subscription association. Unselected provider values are not required.
+
+The Catalog parser fails fast if the selected provider lacks a required ID. Do not copy display
+prices into a checkout request or manually calculate Provider amounts.
+
+## Checkout flow
+
+1. The authenticated Server Action receives a Catalog plan id and validates its schema.
+2. Billing resolves the selected Provider's configured Product/Price ID.
+3. Billing checks the active-subscription/Lifetime guard where applicable.
+4. Billing creates a redirect-based checkout using the Provider SDK.
+5. The action redirects the browser to the Provider.
+6. The signed webhook confirms the purchase or subscription before local access/Credit facts change.
+
+This design keeps Provider prices, taxes, payment status, and currency authoritative at the
+Provider. Embedded checkout is not introduced and CSP is not relaxed for a payment frame.
+
+## Active plan resolution
+
+`getActivePlan` uses this fixed order:
+
+1. Valid paid Lifetime Purchase.
+2. Provider `active` or `trialing` Subscription.
+3. Free plan.
+
+Provider unavailability is an explicit billing error, not a silent Free-plan fallback. Lifetime
+and Credit purchase records contain Provider-returned integer minor-unit amounts and lower-case
+three-letter currency codes as required by the package contracts.
+
+## Credits
+
+Credit Packs grant an append-only positive `purchase` transaction. Consumption runs in one DB
+transaction: it conditionally updates the balance, inserts a signed transaction, and rejects an
+insufficient balance. `referenceType` and `referenceId` make a business operation idempotent.
+Refunds append compensating transactions and may produce a negative balance; history is never
+rewritten.

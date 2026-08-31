@@ -1,0 +1,4 @@
+{
+  "title": "Authentication",
+  "pages": ["index", "oauth-and-magic-link", "security"]
+}

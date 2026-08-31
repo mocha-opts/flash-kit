@@ -1,0 +1,73 @@
+---
+title: Sessions and account security
+description: Session storage, explicit account linking, admin boundaries, email changes, and deletion.
+---
+
+## Sessions
+
+Sessions are stored in the database. The browser receives an opaque, host-only cookie with
+HttpOnly, `SameSite=Lax`, and `Secure` in production. The session is valid for 30 days and is
+sliding-refreshed once per day. Server access uses a request-scoped React cache and does not enable
+a cross-request cookie session cache.
+
+Protected layouts call `requireUser`; Admin layouts call `requireAdmin`. Proxy navigation is not an
+authorization boundary. Session view models omit session tokens.
+
+## Explicit account linking
+
+Linking is available only from an authenticated Security page and uses the restricted Auth client.
+The installed configuration enables trusted Google/GitHub providers, disables implicit linking,
+requires the same email, preserves local profile information, and refuses to unlink the last
+login method.
+
+```ts
+import { linkSocialAccount, unlinkAccount } from '@repo/auth/client';
+
+await linkSocialAccount({ provider: 'github', callbackPath: '/settings/security' });
+await unlinkAccount(accountId);
+```
+
+The account id is a local record identifier returned by a safe server view, not a provider access
+token. Different-email linking and provider profile overwrites are rejected.
+
+## Email changes
+
+Email change is a custom Better Auth endpoint implemented in `packages/auth/src/plugins/email-change.ts`:
+
+1. Require a recent session and validate the normalized new address (including the address-not-in-use check).
+2. Generate the random token and its bounded value (`userId`, old/new addresses, and initiating session id).
+3. Await both localized emails: verification to the new address and a notice to the old address.
+4. Only after both sends succeed, create the hashed, one-use, 30-minute verification record.
+5. On verification, consume the record and atomically update the Better Auth user email in one transaction.
+6. Revoke every session except the initiating session in that same transaction.
+
+If email delivery succeeds but the final verification-record insert fails, the emailed token has no
+matching record and is unusable; the request reports a generic failure for the caller to retry.
+
+The UI receives fixed success/failure flags rather than provider or token details.
+
+## Account deletion
+
+The generic Better Auth `/delete-user` endpoint is disabled. The confirmed application action:
+
+1. Re-reads the current authoritative session and requires the configured freshness window.
+2. Runs Billing's Provider-neutral preflight.
+3. Refuses `active`, `trialing`, `past_due`, or unknown subscription state; Provider failures fail
+   closed.
+4. Deletes the exact current user through the narrow DB query.
+
+User-owned Project, Purchase, Credit Account, and Credit Transaction rows cascade. Billing Event
+rows have no User foreign key and remain for webhook idempotency; admin actor references are set to
+null where appropriate.
+
+## Admin bootstrap
+
+Admin role assignment is a deliberate reviewed database operation against one exact user id. It is
+not inferred from email or domain, and the Admin UI does not grant roles. After granting the role,
+re-read the row and verify it. Keep the SQL and audit output out of source control.
+
+## Safe failures
+
+Auth provider errors, tokens, and stack traces remain server-side. Browser actions render one
+generic localized message, while server logs use safe allowlisted fields. See [Deployment](/docs/deployment)
+for production security headers and request IDs.

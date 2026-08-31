@@ -1,0 +1,94 @@
+---
+title: Deployment
+description: Build, migrate, configure providers, and smoke-test a portable Node.js deployment.
+---
+
+Flash Kit is deployable as two Next.js apps: the product Web app and the independent Docs app. The
+reference host is Vercel, but both apps use standard Next.js/Node runtime behavior. Fumadocs is
+not configured for an Edge runtime.
+
+## Release order
+
+1. Create an isolated Preview environment; never point Preview at production DB or Providers.
+2. Install with the committed lockfile.
+3. Run `pnpm deps:check`, formatting, lint, typechecks, and the affected production builds.
+4. Back up production and verify PITR.
+5. Apply Drizzle migrations as a separate step.
+6. Deploy the Web app and Docs app.
+7. Run Auth, Billing webhook, mail, locale, and docs smoke checks.
+
+Build and application startup do not run migrations. Do not add Redis, Queue, Worker, Cron,
+Outbox, or an Observability sidecar to the release.
+
+## Production builds
+
+From the repository root:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm deps:check
+pnpm --filter web typecheck
+pnpm --filter web build
+pnpm --filter docs typecheck
+pnpm --filter docs build
+```
+
+Start the compiled apps with their package scripts or your host's Next.js integration:
+
+```bash
+pnpm --filter web start
+pnpm --filter docs start
+```
+
+The Docs build runs Fumadocs MDX compilation, creates static params from the content source, and
+renders the `DocsLayout` page tree. The dynamic `/api/search` handler builds the ZBSearch index
+from that source on first use and caches it in the server process.
+
+## Environment and secrets
+
+Set the Web app's server variables in the host environment. Keep `DATABASE_URL`,
+`BETTER_AUTH_SECRET`, OAuth secrets, billing secrets, webhook secrets, mail API keys, and SMTP
+passwords server-only. Set `NEXT_PUBLIC_APP_NAME` and `NEXT_PUBLIC_SITE_URL` as the explicit
+browser-safe values.
+
+Production requires an HTTPS site URL without a trailing slash. If strict CSP is enabled, set:
+
+```ini
+ENABLE_STRICT_CSP=true
+```
+
+This enables nonce CSP and dynamic locale rendering in the Web app. The Docs app uses Fumadocs's
+own framework/theme scripts and should be verified with the host's headers; do not blindly add
+`unsafe-inline` or relax checkout policy.
+
+## OAuth and webhook dashboards
+
+Register the production callbacks and signed webhook URLs using the exact `NEXT_PUBLIC_SITE_URL`:
+
+```text
+/api/auth/callback/google
+/api/auth/callback/github
+/api/auth/stripe/webhook
+/api/auth/polar/webhooks
+```
+
+Only the selected Billing Provider's webhook is configured. A Provider's protocol redelivery is
+the recovery mechanism for failed synchronous webhook transactions; the application does not
+schedule retries.
+
+## Mail delivery
+
+Choose Resend or SMTP once, configure a verified sender/domain, and validate DNS in the mail
+Provider dashboard. Auth email failures are visible to the Auth request; auxiliary billing email
+failures are isolated after commit. There is no email log table or background mail worker.
+
+## Smoke checks
+
+- Open `/docs` and one page in each navigation group.
+- Trigger `Ctrl+K`/`⌘K`, search a known page title, and open the result.
+- Request Magic Link and confirm the safe check-email screen.
+- Complete a sandbox OAuth callback if enabled.
+- Send a sandbox/test checkout and verify the signed webhook reaches the selected path.
+- Confirm a receipt or payment-failed notice does not alter committed Billing facts when delivery
+  is unavailable.
+- Verify HSTS, `nosniff`, strict Referrer Policy, restricted Permissions Policy, and frame denial.

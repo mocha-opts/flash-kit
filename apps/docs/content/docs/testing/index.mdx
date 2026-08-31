@@ -1,0 +1,60 @@
+---
+title: Testing
+description: The deferred test strategy, public seams, and implementation-time quality gates.
+---
+
+The repository intentionally defers the full test suite until all business tickets are implemented.
+That decision does not defer type safety or production builds: every implementation ticket keeps
+dependency consistency, Biome, TypeScript, and the affected production build healthy.
+
+## Current implementation gates
+
+Run these from the repository root while changing the Docs app:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm deps:check
+pnpm biome check apps/docs
+pnpm --filter docs typecheck
+pnpm --filter docs build
+```
+
+The docs build is the acceptance check for MDX compilation, metadata, page-tree navigation,
+Fumadocs UI imports, and the `/api/search` Route Handler.
+
+## Test seams after implementation
+
+Tests should assert public behavior rather than private functions, directory layout, Drizzle query
+shape, Provider SDK calls, or React implementation details. The preferred seams are:
+
+| Area | Boundary | Required behavior |
+| --- | --- | --- |
+| Config | `@repo/config` schemas | selected Provider conditional validation and trusted URL rules |
+| Billing | `@repo/billing/server` | Catalog, active-plan precedence, capability behavior, and Credit errors |
+| Database | real PostgreSQL + migrations | ownership filters, constraints, cascade, and append-only ledger |
+| Auth | Better Auth catch-all | OAuth/Magic Link, session freshness, linking, ban, and deletion guards |
+| Email | `@repo/email/server` | locale templates, plain text, and critical/auxiliary failure semantics |
+| Actions | public/authenticated/admin clients | validation, context injection, authorization, redirect/data behavior |
+| Browser | user journeys | locale, theme, forms, Project removal boundary, Auth/Admin/Billing paths |
+| Docs | production app | all docs routes render, search API responds, and links remain valid |
+
+## Planned layers
+
+- Vitest unit/contract tests for pure Catalog, capability, URL, locale, and config behavior.
+- PostgreSQL 18 integration tests from an empty migrated database for user ownership, Project CRUD,
+  account deletion, Billing Events, and concurrent Credit consumption.
+- Provider contract fixtures for Stripe and Polar signed webhook boundaries, redelivery, duplicate
+  orders, refunds, and disputes.
+- Testing Library for real form/Dialog/Menu accessibility and temporary Zustand UI state.
+- Playwright for the browser flows from landing/pricing through Auth, Project CRUD, Billing redirect,
+  Admin guard, locale, theme, and mobile navigation.
+
+All tests should default to zero retries. A failure must expose the behavior and retain only
+necessary trace/screenshot/service output; retries must not hide flakiness. External payment and
+mail tests use sandbox providers or deterministic adapters and never create real charges/messages.
+
+## Database test isolation
+
+Use `@repo/db/testing` only from test configuration. Each parallel worker gets an isolated
+PostgreSQL database or schema. Tests start from the real reviewed migrations, not a hand-written
+fixture schema, so generated Better Auth tables and custom tables stay in sync.

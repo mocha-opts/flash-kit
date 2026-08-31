@@ -1,0 +1,157 @@
+---
+title: Configuration
+description: Configure the server-only environment contract and select one provider per boundary.
+---
+
+Only `@repo/config` normally reads `process.env`. The Web app supplies the `.env` files; the Docs
+app has no product provider configuration. Client-safe values are explicitly prefixed with
+`NEXT_PUBLIC_` and are never replaced with a whole environment object.
+
+The list below mirrors `packages/config/src/env/server/server-env.schema.ts`. Keep
+`apps/web/.env.example` and deployment settings aligned with that schema; do not invent a second
+provider configuration file.
+
+## Runtime and database
+
+```ini
+NODE_ENV=development
+CI=false
+ENABLE_STRICT_CSP=false
+NEXT_PUBLIC_APP_NAME=Flash Kit
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+DATABASE_URL=postgres://flash_kit:flash_kit@localhost:54333/flash_kit
+DATABASE_POOL_MAX=10
+BETTER_AUTH_SECRET=at-least-32-characters
+```
+
+`NODE_ENV` accepts `development`, `test`, or `production`. `NEXT_PUBLIC_SITE_URL` must be an HTTPS
+URL without a trailing slash in production; the Auth base URL and trusted origin derive from it.
+`BETTER_AUTH_SECRET` must be at least 32 characters. `DATABASE_POOL_MAX` is a positive integer and
+defaults to `10`.
+
+`CI` is a server-only `true`/`false` flag (default `false`). When `CI=true`, the parsed
+`serverEnv.isCi` value disables Better Auth's database-backed rate-limit plugin so deterministic
+checks do not depend on request history. It does not disable authentication, authorization,
+database access, or provider validation. `ENABLE_STRICT_CSP=true` enables the production-only
+nonce CSP path; the Web app ignores it for API requests.
+
+## OAuth flags and credentials
+
+Google and GitHub are optional. Each enabled provider requires both credentials below:
+
+```ini
+AUTH_GOOGLE_ENABLED=true
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+AUTH_GITHUB_ENABLED=false
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+```
+
+The callback paths are `/api/auth/callback/google` and `/api/auth/callback/github`. Never prefix
+client secrets with `NEXT_PUBLIC_` or expose OAuth tokens through an app or package client export.
+
+## Billing provider and Catalog IDs
+
+Select exactly one billing provider per deployment. Its access/webhook credentials are required:
+
+```ini
+BILLING_PROVIDER=stripe
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+Or:
+
+```ini
+BILLING_PROVIDER=polar
+POLAR_ACCESS_TOKEN=...
+POLAR_WEBHOOK_SECRET=...
+```
+
+The code-owned Catalog has Pro monthly, Pro yearly, Lifetime, and the 100-Credit Pack paid
+entries. For every paid entry, the selected provider requires a Product ID. Stripe also requires
+the matching Price ID for every paid entry; Polar accepts an optional Price ID and can resolve
+checkout from the Product ID. The free plan has no provider IDs.
+
+Set the complete pair for each Stripe entry when `BILLING_PROVIDER=stripe`:
+
+```ini
+STRIPE_PRODUCT_PRO_MONTHLY=
+STRIPE_PRICE_PRO_MONTHLY=
+STRIPE_PRODUCT_PRO_YEARLY=
+STRIPE_PRICE_PRO_YEARLY=
+STRIPE_PRODUCT_LIFETIME=
+STRIPE_PRICE_LIFETIME=
+STRIPE_PRODUCT_CREDIT_PACK_100=
+STRIPE_PRICE_CREDIT_PACK_100=
+```
+
+Set a Product ID for every Polar entry when `BILLING_PROVIDER=polar`; each Price ID is optional
+and may remain empty:
+
+```ini
+POLAR_PRODUCT_PRO_MONTHLY=
+POLAR_PRICE_PRO_MONTHLY=
+POLAR_PRODUCT_PRO_YEARLY=
+POLAR_PRICE_PRO_YEARLY=
+POLAR_PRODUCT_LIFETIME=
+POLAR_PRICE_LIFETIME=
+POLAR_PRODUCT_CREDIT_PACK_100=
+POLAR_PRICE_CREDIT_PACK_100=
+```
+
+The unselected provider's fields are not used by the active Catalog parser and its SDK is not
+initialized. Keep the names and plan mapping exact: changing a Catalog plan requires updating its
+selected Provider Product/Price IDs together with the Catalog docs and deployment settings.
+
+## Mailer provider
+
+Select exactly one mail transport:
+
+```ini
+MAILER_PROVIDER=resend
+EMAIL_FROM=noreply@your-domain.example
+RESEND_API_KEY=re_...
+```
+
+Or local/SMTP:
+
+```ini
+MAILER_PROVIDER=smtp
+EMAIL_FROM=noreply@your-domain.example
+SMTP_HOST=localhost
+SMTP_PORT=1025
+SMTP_USER=
+SMTP_PASSWORD=
+```
+
+`EMAIL_FROM` must be a valid email address. Resend requires `RESEND_API_KEY`. SMTP requires
+`SMTP_HOST` and a positive integer `SMTP_PORT`; `SMTP_USER` and `SMTP_PASSWORD` are optional for
+Mailpit, but if either is set then both are required. Auth email failures propagate to the Auth
+request. Post-commit billing receipt/payment-failed notices are auxiliary and isolated. The
+exported `sendWelcomeEmail` is only a compatibility extension point today, with no welcome
+template or product flow; if called directly, its generic sender failure propagates.
+
+## Validation and complete variable reference
+
+`serverEnvSchema` validates core values unconditionally, then conditionally validates credentials
+for enabled OAuth, the selected billing provider, and the selected mailer. This is the complete
+server schema grouped by responsibility:
+
+| Group | Variables |
+| --- | --- |
+| Runtime | `NODE_ENV`, `CI`, `ENABLE_STRICT_CSP` |
+| Public app | `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_SITE_URL` |
+| Database/Auth core | `DATABASE_URL`, `DATABASE_POOL_MAX`, `BETTER_AUTH_SECRET` |
+| Provider selection | `BILLING_PROVIDER`, `MAILER_PROVIDER` |
+| Google OAuth | `AUTH_GOOGLE_ENABLED`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| GitHub OAuth | `AUTH_GITHUB_ENABLED`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` |
+| Stripe | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRODUCT_PRO_MONTHLY`, `STRIPE_PRICE_PRO_MONTHLY`, `STRIPE_PRODUCT_PRO_YEARLY`, `STRIPE_PRICE_PRO_YEARLY`, `STRIPE_PRODUCT_LIFETIME`, `STRIPE_PRICE_LIFETIME`, `STRIPE_PRODUCT_CREDIT_PACK_100`, `STRIPE_PRICE_CREDIT_PACK_100` |
+| Polar | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_PRO_MONTHLY`, `POLAR_PRICE_PRO_MONTHLY`, `POLAR_PRODUCT_PRO_YEARLY`, `POLAR_PRICE_PRO_YEARLY`, `POLAR_PRODUCT_LIFETIME`, `POLAR_PRICE_LIFETIME`, `POLAR_PRODUCT_CREDIT_PACK_100`, `POLAR_PRICE_CREDIT_PACK_100` |
+| Resend | `EMAIL_FROM`, `RESEND_API_KEY` |
+| SMTP | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` |
+
+Use `pnpm --filter web typecheck` or `pnpm --filter web build` after changing deployment
+configuration. Missing core values or selected-provider credentials fail fast before the Web app
+can serve requests.

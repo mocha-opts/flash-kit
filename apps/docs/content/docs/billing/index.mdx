@@ -1,0 +1,67 @@
+---
+title: Billing
+description: Provider-neutral billing for Stripe or Polar, with subscriptions, Lifetime, and Credits.
+---
+
+`@repo/billing` is the only billing boundary. It exposes a Provider-neutral `BillingClient`, a
+code-owned Catalog, Credit ledger operations, reusable pricing components, and the one Better Auth
+plugin integration seam. A deployment selects Stripe or Polar once with `BILLING_PROVIDER`.
+
+## Products
+
+The current Catalog in `packages/billing/src/config/billing-catalog.ts` contains:
+
+| ID | Kind | Display price | Entitlement |
+| --- | --- | ---: | --- |
+| `free` | Free | — | Core workspace, one project, 10 monthly generations |
+| `pro-monthly` | Subscription | USD 12/month | Core + advanced generation, unlimited projects, 1,000 monthly generations |
+| `pro-yearly` | Subscription | USD 120/year | Same Pro entitlements |
+| `lifetime` | Lifetime | USD 299 once | Core + advanced generation, unlimited projects/generations |
+| `credit-pack-100` | Credit Package | USD 15 once | 100 local Credits |
+
+Catalog `cost` and `currency` values are display-only. Checkout uses configured Provider Product/
+Price IDs, and accounting uses signed Provider facts. `@repo/billing` does not define or mirror
+local Customer, Product, Price, Subscription, or Entitlement tables. When Stripe is selected,
+`@repo/auth` installs the selected official `@better-auth/stripe` Better Auth plugin; that plugin
+contributes the `subscription` table to the generated `packages/db/src/schema/core.ts`. This is
+Better Auth's generated core schema, not a Billing-owned mirror. When Polar is selected, the
+official Polar integration uses Better Auth user ids as external customer ids and declares no local
+billing tables.
+
+## Capabilities
+
+Both supported providers currently expose checkout, Lifetime checkout, Credit checkout, customer
+portal, cancellation, restoration, and active-plan reads. UI consumes `BillingCapabilities`
+instead of branching on provider names. A user cannot start another paid subscription while an
+active/trialing one exists or buy a second Lifetime purchase; Credit Packs remain repeatable.
+
+## Public server API
+
+```ts
+import {
+  createBetterAuthBillingPlugin,
+  getActivePlan,
+  getBilling,
+  getCreditBalance,
+  listCreditTransactions,
+  consumeCredits,
+} from '@repo/billing/server';
+
+const billing = getBilling();
+const plan = await getActivePlan({ userId });
+const balance = await getCreditBalance({ userId });
+const history = await listCreditTransactions({ userId, page: 1, limit: 50 });
+```
+
+Checkout and portal return redirect targets through the Provider-neutral client. Pages and actions
+own the final Next.js redirect. `consumeCredits` is a protected server capability, not an HTTP
+endpoint, and requires a business reference so duplicate requests cannot deduct twice.
+
+## Better Auth plugin
+
+Auth imports only `createBetterAuthBillingPlugin` from `@repo/billing/server` and installs the
+returned official Provider plugin. The selected Stripe plugin contributes the generated
+`subscription` schema described above; it is not an additional Billing-owned table. Polar uses
+Better Auth user ids as external customer ids and declares no local billing tables.
+
+Provider SDKs and webhook hooks stay under `packages/billing/src/providers` and are never exported.

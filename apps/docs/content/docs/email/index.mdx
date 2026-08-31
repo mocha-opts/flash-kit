@@ -1,0 +1,70 @@
+---
+title: Email
+description: Synchronous, provider-neutral email delivery with localized React Email templates.
+---
+
+`@repo/email` owns the mailer interface, Resend and Nodemailer SMTP providers, React Email
+templates, English/`zh-CN` copy, and semantic senders. It is server-only and does not store an
+email log, enqueue work, delay delivery, or implement an application retry loop.
+
+## Select one transport
+
+Resend:
+
+```ini
+MAILER_PROVIDER=resend
+EMAIL_FROM=noreply@your-domain.example
+RESEND_API_KEY=re_...
+```
+
+SMTP:
+
+```ini
+MAILER_PROVIDER=smtp
+EMAIL_FROM=noreply@your-domain.example
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=...
+SMTP_PASSWORD=...
+```
+
+For local development use Mailpit (`localhost:1025`) and leave SMTP credentials empty. The config
+schema requires both credentials if either is present. A deployment chooses one transport; it does
+not switch providers per request.
+
+## Semantic senders
+
+Application code uses `@repo/email/server`:
+
+```ts
+import {
+  sendEmailChangeNotice,
+  sendEmailChangeVerificationEmail,
+  sendMagicLinkEmail,
+  sendPaymentFailedEmail,
+  sendPurchaseReceiptEmail,
+} from '@repo/email/server';
+```
+
+Auth messages are awaited and delivery failures fail the Auth request. Receipt and payment-failed
+billing notices are post-commit auxiliary delivery: the committed business transaction remains
+successful when their delivery fails. `sendWelcomeEmail` is exported as a compatibility extension
+point, but there is currently no welcome React Email template or product flow that calls it. If a
+caller invokes it directly, it delegates to the generic sender, whose delivery failures propagate
+by default; do not describe it as an auxiliary notification until a product flow defines that
+policy.
+
+## Validation and security boundary
+
+Semantic Auth and Billing senders validate their inputs with Zod. Depending on the sender, that
+includes email addresses, HTTP(S) URLs, supported locale, expiry bounds, and Billing facts such as
+purchase kind, interval, amount/currency, credits, and occurred-at values. Production URLs should
+use HTTPS; local localhost flows may use HTTP. The generic
+`sendEmail` runtime only normalizes and validates the recipient, renders the React body, and
+delegates to the active mailer. Its `subject` and `template` descriptor rely on the typed
+`SendEmailInput`/`EmailTemplateDescriptor` contract; they do not have a separate runtime Zod
+schema.
+
+The sender boundary does not log complete addresses, Magic Link tokens or URLs, HTML, or raw
+Provider responses. The Provider adapters are private; callers never import Resend or Nodemailer
+directly.

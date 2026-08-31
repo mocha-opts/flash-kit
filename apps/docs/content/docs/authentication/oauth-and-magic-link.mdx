@@ -1,0 +1,45 @@
+---
+title: OAuth and Magic Link
+description: Configure provider credentials and understand the safe sign-in and callback contract.
+---
+
+## Google and GitHub
+
+The `appConfig.oauthProviders` flags are derived from the validated server environment. A provider
+object is constructed only when its flag is enabled and both credentials are present. Requested
+scopes are minimal:
+
+| Provider | Scopes |
+| --- | --- |
+| Google | `openid`, `email`, `profile` |
+| GitHub | `read:user`, `user:email` |
+
+Provider profile data does not overwrite local user information during sign-in. Account linking is
+explicit; a new OAuth account with the same address is not implicitly merged.
+
+## Magic Link lifecycle
+
+1. The client submits an email to the restricted Auth client.
+2. Better Auth creates a random token, stores only its hash, and calls the synchronous mail sender.
+3. The user opens the callback URL from the email.
+4. The token is atomically consumed once and expires after 600 seconds.
+5. The session is created and the safe callback path is followed.
+
+The plugin allows one attempt and applies a five-per-minute request limit for Magic Link delivery.
+Auth mail failures are thrown so the request fails, while the browser still receives a generic
+safe failure message.
+
+## Local testing
+
+With `MAILER_PROVIDER=smtp`, `SMTP_HOST=localhost`, and `SMTP_PORT=1025`, open Mailpit at
+`http://localhost:8025`. Do not paste a real production address into local development. The
+application does not log a raw token or full magic URL.
+
+## Callback safety
+
+`NEXT_PUBLIC_SITE_URL` becomes Better Auth's `baseURL`, with `/api/auth` as `basePath`. Trusted
+origins contain the validated site origin only. Auth callback and return values accept fixed or
+relative paths; the validation rejects backslashes, protocol-relative URLs, and external origins.
+
+When changing a sign-in destination, update the route-local form and keep the destination as a
+path such as `/dashboard` or `/settings/security`. Do not accept a browser-provided absolute URL.

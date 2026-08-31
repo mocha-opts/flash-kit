@@ -1,0 +1,54 @@
+---
+title: Database
+description: PostgreSQL, Drizzle, generated Better Auth tables, and minimal owned persistence.
+---
+
+`@repo/db` owns the postgres.js/Drizzle client, schema exports, reviewed migrations, grouped
+queries, and test helpers. It does not own Auth/Billing workflows, run migrations on startup, or
+introduce generic repositories.
+
+## Runtime connection
+
+```ini
+DATABASE_URL=postgres://flash_kit:flash_kit@localhost:54333/flash_kit
+DATABASE_POOL_MAX=10
+```
+
+The default `db` is a process-level singleton. `createDatabaseClient()` is available for tests,
+scripts, or an isolated deployment pool. Transaction-pooler compatibility disables prepared
+statements. The generated Better Auth schema in `packages/db/src/schema/core.ts` uses native
+PostgreSQL `uuid` IDs for `user`, `session`, `account`, `verification`, `subscription`, and
+`rate_limit`; its `timestamp(...)` columns omit `withTimezone: true`, so they are PostgreSQL
+`timestamp without time zone` columns. `rate_limit.last_request` is a `bigint`, not a timestamp.
+
+The owned Billing and Project tables use a different explicit policy: their business timestamps
+pass `{ withTimezone: true }` and are PostgreSQL `timestamptz` values. The generated IDs for
+`billing_purchase`, `billing_event`, `credit_transaction`, and `project` are text values made from
+`gen_random_uuid()::text`; their user foreign keys remain native `uuid` references. The
+`credit_account` table has no separate ID—its native-UUID `userId` is the primary key.
+
+## Public database entries
+
+```ts
+import { db, withTransaction } from '@repo/db/client';
+import { user, project, creditAccount } from '@repo/db/schema';
+import { findProjectForUser } from '@repo/db/queries/example';
+```
+
+Use named query functions rather than a `BaseRepository` or table-specific class. User-scoped
+queries include the trusted `userId` predicate in SQL. Database primitives do not decide whether
+the caller is an authenticated Admin; the Auth/action layer does that immediately before calling.
+
+## Ownership model
+
+Better Auth owns `user`, `session`, `account`, `verification`, rate-limit, and the generated Stripe
+subscription records. Owned tables are:
+
+- `project` — removable, user-owned CRUD example.
+- `billing_purchase` — minimal Lifetime/Credit Pack facts and Provider order identity.
+- `credit_account` — one mutable integer balance per user.
+- `credit_transaction` — append-only signed history with balance-after and business reference.
+- `billing_event` — PII-free Provider event idempotency ledger retained after user deletion.
+
+There is no local Customer, Product, Price, Entitlement, User Profile, Organization, or Email Log
+table. Credit consumption and billing event fulfillment use caller-owned Drizzle transactions.

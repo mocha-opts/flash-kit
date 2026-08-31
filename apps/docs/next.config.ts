@@ -1,3 +1,4 @@
+import { createMDX } from 'fumadocs-mdx/next';
 import type { NextConfig } from 'next';
 
 const nextConfig = {
@@ -6,6 +7,9 @@ const nextConfig = {
     useTypeScriptCli: true,
   },
   productionBrowserSourceMaps: false,
+  reactStrictMode: true,
 } satisfies NextConfig;
 
-export default nextConfig;
+const withMDX = createMDX();
+
+export default withMDX(nextConfig);

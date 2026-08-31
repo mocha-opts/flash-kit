@@ -1,0 +1,56 @@
+---
+title: Templates and senders
+description: Extend localized React Email safely without coupling product code to a transport.
+---
+
+## Current templates
+
+The source of truth is `packages/email/src/templates`:
+
+| Kind | Template | Sender |
+| --- | --- | --- |
+| Magic Link | `auth/magic-link-email.tsx` | `sendMagicLinkEmail` |
+| Email change verification | `auth/email-change-verification-email.tsx` | `sendEmailChangeVerificationEmail` |
+| Email change notice | `auth/email-change-notice-email.tsx` | `sendEmailChangeNotice` |
+| Purchase receipt | `billing/purchase-receipt-email.tsx` | `sendPurchaseReceiptEmail` |
+| Payment failed | `billing/payment-failed-email.tsx` | `sendPaymentFailedEmail` |
+
+Shared components live under `templates/components`; English and `zh-CN` copy lives under
+`templates/messages`. Templates produce HTML and plain text through the internal renderer. They do
+not import browser UI or `@repo/ui`.
+
+## Add a product message
+
+1. Add a React Email template under the correct feature folder.
+2. Add English and `zh-CN` message entries.
+3. Add a typed sender under `senders/` with bounded Zod input.
+4. Export the semantic sender from `src/server.ts`.
+5. Decide explicitly whether delivery failure is request-critical or auxiliary.
+6. Preview it through `@repo/email/templates` in Docs or tests; keep the transport private.
+
+The generic `sendEmail` is a controlled extension point for a caller that already owns the
+semantic policy. Prefer a named sender for any product-facing message so failure semantics and
+localization remain visible at the call site.
+
+`sendWelcomeEmail` is also exported from `@repo/email/server` for compatibility with a future
+welcome flow. It currently delegates to the generic sender; there is no welcome React Email
+template or product call site, so direct callers receive the generic sender's propagated delivery
+failure behavior.
+
+## Locale and recipient rules
+
+Sender inputs use `EmailLocale = 'en' | 'zh-CN'`. Auth resolves the locale from the safe callback
+path/request context; Billing passes locale-neutral facts and the notification composition maps to
+the sender. Never accept a client-provided HTML string, raw Provider payload, or unbounded template
+data.
+
+## Failure semantics
+
+```text
+Auth request → send email → failure propagates → generic client error
+Billing transaction → commit facts → send auxiliary notice → failure is isolated
+```
+
+The second path is intentionally synchronous but post-commit. There is no Queue, Worker, Cron,
+Outbox, email log table, or internal retry. If delivery needs to be retried, inspect the mail
+provider and invoke the user-facing flow again under its existing idempotency rules.

@@ -1,0 +1,106 @@
+---
+title: Remove the Project example
+description: Delete the example feature completely while preserving Auth, Billing, Email, Admin, and builds.
+---
+
+Project is a deliberately removable example. It is not a dependency of Auth, Billing, Email, or
+the Docs app. Before deleting it, search all callers so a product-specific replacement is ready.
+This is a manual change set, not a script: review each diff and deploy database changes according
+to the state of the target database.
+
+## Preflight and active-code search
+
+Start from a clean branch or a separately reviewed worktree, then inspect all Project references:
+
+```bash
+rg -n -i "projects|project|@repo/db/queries/example" apps/web packages \
+  --glob '*.ts' --glob '*.tsx' --glob '*.json' --glob '*.mjs' --glob '*.cjs'
+rg -n "@repo/db" apps/web --glob '*.ts' --glob '*.tsx' --glob '*.json' --glob '*.mjs' --glob '*.cjs'
+```
+
+The second search is the gate for removing `@repo/db` from `apps/web/package.json`: remove that
+dependency only after no remaining Web source or package runtime path requires it. Auth, Billing,
+and account deletion may still need database access through their own package dependencies, so
+removing the direct Web declaration is not automatically safe merely because the Project route is
+gone.
+
+## Complete removal checklist
+
+1. Remove `apps/web/app/[locale]/(app)/projects/`, including its pages, route-local actions,
+   loaders, schemas, components, date helper, and error boundary.
+2. Remove the Projects link from
+   `apps/web/app/[locale]/(app)/_components/app-navigation.tsx`, then remove the matching
+   `projects` namespace and `appNav.projects` key from both
+   `apps/web/i18n/messages/en/common.json` and `apps/web/i18n/messages/zh-CN/common.json`.
+3. Remove `packages/db/src/schema/example.ts` and its export from
+   `packages/db/src/schema/index.ts`.
+4. Remove `packages/db/src/queries/example/project.queries.ts` and its exports. If the subpath has
+   no callers, remove `./queries/example` from `packages/db/package.json`.
+5. Remove the `./src/schema/example.ts` entry from `packages/db/drizzle.config.ts`.
+6. Remove the `projects` limit from every plan in
+   `packages/billing/src/config/billing-catalog.ts`. The remaining limits must still describe
+   actual product capabilities; do not leave a dead Catalog key just to keep the old Pricing UI
+   compiling.
+7. Remove the Pricing limit label and mapping. In the current Web implementation this means
+   removing `pricing.limits.projects` from both locale message files and removing the
+   `projects: t('limits.projects')` entry from
+   `apps/web/app/[locale]/(public)/pricing/page.tsx`. The code currently has no separate
+   `billing.limits.projects` namespace; the Catalog `limits.projects` key and the Web
+   `pricing.limits.projects` text/mapping are the two active surfaces to remove.
+8. Update account-deletion copy in both locale message files. Remove `projects` from
+   `accountDeletion.dataLoss` because the Project table is no longer product data. Keep the
+   remaining profile, session, linked-account, purchase, and credit-loss statements accurate.
+9. Update `packages/db/README.md` to match the post-removal boundary: remove the example schema and
+   `@repo/db/queries/example` from its responsibility, public-export, usage, placement, and
+   removal sections. Keep the generated Better Auth core schema, billing Purchase/Event queries,
+   Credit persistence, and account-deletion notes intact. This README is part of the DB package
+   contract and must not be left claiming that Project exports still exist.
+10. Update the English Fumadocs contract: revise the Packages export table/examples, Billing
+    Catalog/Pricing references, Database schema/export references, Architecture/package map, and
+    this removal guide. Remove active Project claims from those pages, while retaining this page
+    as the operator procedure for removing the example.
+11. Update the Chinese architecture contract under root `docs/architecture` and any linked root
+    ADR/architecture records to describe the product without Project. Those files are the
+    repository's architecture authority; this English guide points to them but does not replace
+    them.
+12. Remove the `@repo/db` Web dependency only after the preflight search proves no remaining Web
+    import. Re-run dependency resolution after any `package.json` change.
+
+## Migration and history safety
+
+Keep historical migration SQL, Drizzle journal entries, and migration metadata. The existing
+history and this removal guide intentionally retain `project` text so past schema events and the
+operator procedure remain auditable. If a migration has already reached a shared or production
+database, never edit or delete that migration or its journal entry. Remove the table only with a
+new reviewed forward migration containing the required `DROP TABLE project` operation, and deploy
+that migration separately from the code removal.
+
+For a local database, recreate or migrate it deliberately after reviewing the SQL. Never add a
+down migration or run destructive SQL automatically during build or startup. Use Expand/Contract
+when code and schema must coexist during rollout.
+
+## Verification
+
+Use an active-code search, not a whole-repository zero-hit assertion:
+
+```bash
+rg -n -i "projects|project|@repo/db/queries/example" apps/web packages \
+  --glob '*.ts' --glob '*.tsx' --glob '*.json' --glob '*.mjs' --glob '*.cjs' \
+  --glob '!packages/db/drizzle/**'
+rg -n "@repo/db" apps/web --glob '*.ts' --glob '*.tsx' --glob '*.json' --glob '*.mjs' --glob '*.cjs'
+pnpm deps:check
+pnpm --filter @repo/db typecheck
+pnpm --filter web typecheck
+pnpm --filter web build
+pnpm --filter docs build
+```
+
+The active-code search should have no remaining Project feature references after the checklist,
+but it is expected that historical migrations/metadata, the DB README until step 9 is complete,
+this guide, and the Chinese architecture records still contain `project` text. Review those
+expected hits separately instead of claiming that the entire repository has zero matches.
+
+Finally verify Auth sign-in and account deletion, Billing Pricing and both webhook paths, Email
+composition, Admin layout, and Web/Docs production builds. Removing Project must not remove the
+Better Auth generated schema, Billing Purchase/Event records, or Credit Account/Credit Transaction
+tables.

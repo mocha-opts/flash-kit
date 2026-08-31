@@ -1,0 +1,80 @@
+---
+title: Architecture
+description: A modular monolith with explicit package boundaries and server-first request flow.
+---
+
+Flash Kit has one Next.js product app, one PostgreSQL database, and a separate documentation
+app. It is designed for a personal B2C or self-use SaaS product where one User is the tenant and
+billing subject. There is no Organization or team boundary to model.
+
+## System view
+
+```text
+Browser
+  ├─ Server Components / loaders
+  ├─ next-safe-action Server Actions
+  └─ /api/auth/[...all]
+       ├─ Better Auth
+       ├─ /api/auth/stripe/webhook
+       └─ /api/auth/polar/webhooks
+
+apps/web ──> auth ──> billing ──> db ──> PostgreSQL
+    │          │          └──────> Stripe or Polar
+    │          └──────────────────> email ──> Resend or SMTP
+    ├─ i18n
+    └─ ui
+
+apps/docs ──> Fumadocs
+```
+
+The runtime dependency direction is downward: `db` and `email` use `config`; `billing` composes
+`config` and `db`; `auth` composes Billing, DB, Email, and Config; `i18n` and `ui` remain
+independent presentation/runtime packages; and `apps/web` is the composition root. `billing` never
+depends on `auth`, and `ui` never depends on a business package.
+
+## Request flow
+
+Reads are performed by Server Components through a route-local loader or a package server API.
+Mutations use a `next-safe-action` client and follow this order:
+
+```text
+Zod input schema
+  → authenticated/admin context
+  → trusted session user id
+  → user-scoped package query or service
+  → precise revalidation or redirect
+  → safe serializable data/error
+```
+
+The browser never supplies the authoritative `userId` for a normal action. Admin actions may
+submit an exact target user id, but authorization happens before the target query. Proxy handles
+locale and request security; layouts and actions remain the final authorization boundary.
+
+## Deep modules, light layers
+
+Each package uses feature folders with a small number of responsibility folders: `api/`,
+`config/`, `providers/`, `components/`, and `internal/` only where those seams are real. It does
+not use `domain/application/infrastructure` layers or generic repositories and services. A
+public subpath is a stable capability; implementation files, provider SDKs, schemas, and webhook
+hooks stay private.
+
+Within the Web app, route-specific components, schemas, loaders, and actions remain co-located.
+Only code reused by multiple routes moves to `apps/web/components` or `apps/web/lib`. A capability
+becomes a Workspace package only when it has a genuine independent boundary.
+
+## Runtime choices
+
+- Next.js 16 App Router, React Server Components, and Server Actions.
+- TypeScript 7 with native Next TypeScript CLI support.
+- Drizzle ORM with postgres.js against PostgreSQL.
+- Better Auth with database sessions, Google/GitHub OAuth, Magic Link, Admin, and rate limits.
+- Provider-neutral Billing Client selecting Stripe or Polar once at startup.
+- Synchronous Resend or SMTP mail delivery.
+- next-intl locale routing with English as the default and `zh-CN` as the prefixed locale.
+
+## Explicit non-goals
+
+Do not add Organization, Team, Invite, Member, Seat Billing, password/OTP/MFA/Passkey auth,
+public REST/GraphQL/tRPC/API Key surfaces, CMS, Storage, Realtime, Mobile, Queue, Worker, Cron,
+Outbox, Redis, internal retry loops, or Observability/APM/Tracing/Metrics/Sentry. Provider webhook
+redelivery is a payment protocol concern, not an application job system.

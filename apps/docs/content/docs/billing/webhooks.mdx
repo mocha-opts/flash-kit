@@ -1,0 +1,58 @@
+---
+title: Webhooks and refunds
+description: The signed Better Auth webhook contracts and synchronous idempotent fulfillment flow.
+---
+
+## One route boundary
+
+The official Better Auth plugin handles signatures and protocol responses inside the Auth catch-all:
+
+```text
+Stripe: /api/auth/stripe/webhook
+Polar:  /api/auth/polar/webhooks
+```
+
+The app must not add `/api/webhooks/*` or parse an unverified raw payload. Configure the exact URL
+in the selected Provider dashboard using the production site origin.
+
+## Fulfillment transaction
+
+The selected adapter resolves Provider facts before opening the business transaction. It then:
+
+1. Claims the PII-free `billing_event` identity.
+2. Returns success immediately for a previously terminal event.
+3. Inserts the minimal Provider-confirmed Purchase if it is new.
+4. Grants the Lifetime access or Credit Pack in the same transaction.
+5. Marks the event processed in the same transaction.
+
+If the transaction fails, facts roll back, the event is marked with a bounded safe error, and the
+handler throws so the Provider receives non-2xx and may redeliver. The application itself does not
+queue, schedule, or retry the event.
+
+## Provider contracts
+
+Stripe validates the signed event and cross-checks Checkout Session, PaymentIntent, line items,
+Catalog IDs, customer ownership, and the positive integer amount before fulfillment. The plugin
+handles `checkout.session.completed`, asynchronous success/failure, invoice receipts, refunds,
+and disputes according to the current adapter.
+
+Polar uses the signed `order.paid`/subscription payloads and the semantic order identity
+`order.paid:<orderId>` because the Better Auth callback does not expose the original Standard
+Webhooks id. Product, metadata, user ownership, payment status, amount, and currency are checked
+before local writes.
+
+## Notifications and refunds
+
+Receipt and payment-failed notifications happen after the durable billing transaction commits.
+Their delivery failure cannot roll back a purchase or trigger an application retry. Lifetime or
+Credit Pack refunds update the local Purchase status and append a Credit compensation; already
+consumed Credits may leave a negative balance. Subscription access follows the Provider's actual
+subscription state.
+
+## Operational checklist
+
+- Use test/sandbox endpoints and secrets in Preview/local environments.
+- Keep webhook secrets server-only.
+- Confirm the endpoint path matches the selected Provider exactly.
+- Inspect Provider delivery attempts when a response is non-2xx.
+- Do not add an internal retry loop or a second event ledger.

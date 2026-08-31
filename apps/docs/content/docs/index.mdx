@@ -1,0 +1,65 @@
+---
+title: Flash Kit documentation
+description: The implementation guide for the Flash Kit personal B2C SaaS starter.
+---
+
+# Build a focused SaaS product
+
+Flash Kit is a modular monolith for a personal B2C or self-use SaaS product. It gives you a
+production-minded Next.js application with authentication, provider-neutral billing, synchronous
+email delivery, PostgreSQL persistence, and a small admin surface.
+
+This documentation is intentionally written for implementation. Every command, environment
+variable, route, package export, and example points at the code in this repository. The Chinese
+architecture files under `docs/architecture/` and the ADRs under `docs/adr/` own the design
+boundaries and remain the repository contract; this English site explains how to use that contract.
+The Chinese version table dated 2026-08-24 is an implementation-baseline snapshot, not a promise
+that every entry is a verbatim current package manifest. For actual dependency versions, the
+`pnpm-workspace.yaml` catalog and `pnpm-lock.yaml` are the machine authority (currently including
+Fumadocs Core/UI `16.15.4` and MDX `15.4.0`); those versions may move forward when new stable
+releases are adopted.
+
+## Start here
+
+1. Follow [Getting Started](/docs/getting-started) to install dependencies and run PostgreSQL,
+   Mailpit, migrations, and the Web app.
+2. Read [Architecture](/docs/architecture) before adding a feature. It defines ownership and
+   the dependency direction.
+3. Use [Packages](/docs/packages) to choose a public import rather than a private file path.
+4. Configure the deployment in [Authentication](/docs/authentication), [Billing](/docs/billing),
+   and [Email](/docs/email).
+
+## What is included
+
+- Google, GitHub, and Magic Link authentication through Better Auth.
+- Stripe or Polar billing, selected once per deployment, with subscriptions, Lifetime purchases,
+  Credit Packs, checkout, portal, cancellation, restoration, and signed webhooks.
+- Resend or Nodemailer SMTP, selected once per deployment, with React Email templates and
+  localized semantic senders.
+- PostgreSQL 18 development/CI, Drizzle ORM, generated Better Auth schema, and reviewed forward
+  migrations.
+- English and `zh-CN` product locales, Tailwind CSS 4, Radix primitives, and Zustand for
+  temporary client-only UI state.
+- A removable Project CRUD example and a minimal Admin surface for user and Credit operations.
+
+## Deliberate boundaries
+
+This starter does not include organizations, teams, invitations, password or OTP login, MFA,
+passkeys, public REST/GraphQL/tRPC APIs, storage, CMS, realtime, mobile, Queue, Worker, Cron,
+Outbox, internal retry loops, Redis, or Observability/APM/Tracing/Metrics/Sentry. Payment provider
+redelivery is the only retry protocol relied upon. Email is awaited in the request that asks for it.
+
+## The ten guides
+
+| Guide | Use it for |
+| --- | --- |
+| Getting Started | Local prerequisites, env files, Compose, and the first migration |
+| Architecture | Runtime boundaries, request flow, and design decisions |
+| Packages | Seven package responsibilities, exports, and import rules |
+| Authentication | Better Auth routes, OAuth, Magic Link, sessions, and account safety |
+| Billing | Catalog, checkout, Credits, Stripe/Polar selection, and webhook contracts |
+| Email | Resend/SMTP setup, sender semantics, templates, and failure behavior |
+| Database | Generated schema, custom tables, migrations, and Project ownership |
+| Testing | The deferred test plan and the public seams to test |
+| Deployment | Build, migration, runtime, provider dashboards, and smoke checks |
+| Customization | Branding, UI tokens, locales, content, and removing Project safely |

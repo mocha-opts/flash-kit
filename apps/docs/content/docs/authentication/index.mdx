@@ -1,0 +1,72 @@
+---
+title: Authentication
+description: Better Auth composition for OAuth, Magic Link, database sessions, and account security.
+---
+
+`@repo/auth` owns the Better Auth server/client boundary. The Web app exposes one catch-all Route
+Handler; route pages and Server Actions decide how an unauthenticated request is presented.
+
+## Transport boundary
+
+```ts
+// apps/web/app/api/auth/[...all]/route.ts
+import { auth } from '@repo/auth/server';
+import { toNextJsHandler } from 'better-auth/next-js';
+
+export const { GET, POST } = toNextJsHandler(auth);
+```
+
+This boundary handles Better Auth routes, including:
+
+- `/api/auth/sign-in/social` and the provider callback routes.
+- `/api/auth/sign-in/magic-link` and `/api/auth/magic-link/verify`, plus the custom
+  `/api/auth/email-change/request` and `/api/auth/email-change/verify` endpoints.
+- `/api/auth/stripe/webhook` or `/api/auth/polar/webhooks` through the installed billing plugin.
+
+The app does not add a parallel `/api/webhooks` or public versioned API.
+
+## Enabled methods
+
+- Google OAuth and GitHub OAuth, controlled by server-side flags.
+- Magic Link with hashed, one-use, ten-minute tokens.
+- Database-backed sessions with a 30-day sliding lifetime.
+- Admin role, ban/unban, and session revocation through the Better Auth Admin plugin.
+- Database rate limiting (disabled in CI for deterministic checks).
+
+There is no password, OTP, MFA, Passkey, Organization, Invitation, or impersonation flow.
+
+## Sign-in behavior
+
+There is no separate registration page. The first successful OAuth or Magic Link sign-in creates a
+user. The sign-in page displays Magic Link and only the OAuth providers enabled in the deployment.
+After a successful Magic Link request, it navigates to `/auth/check-email`; delivery failures stay
+on the sign-in page with one generic error and never reveal whether an address exists.
+
+Use the restricted client boundary from an interactive leaf:
+
+```ts
+import { signInWithMagicLink, signInWithSocial } from '@repo/auth/client';
+
+await signInWithMagicLink({ email, callbackPath: '/dashboard' });
+await signInWithSocial({
+  provider: 'google',
+  callbackPath: '/dashboard',
+  errorCallbackPath: '/auth/sign-in',
+});
+```
+
+Callback paths are relative and validated. They cannot become an external redirect or a protocol-
+relative URL.
+
+## OAuth setup
+
+Set the provider flags and credentials in [Configuration](/docs/getting-started/configuration),
+then register the exact callbacks in Google Cloud Console or GitHub Developer Settings:
+
+```text
+https://your-domain.example/api/auth/callback/google
+https://your-domain.example/api/auth/callback/github
+```
+
+For local development use `http://localhost:3000` as the site origin. OAuth credentials stay in
+server env and Better Auth stores encrypted OAuth tokens; no client export can read them.

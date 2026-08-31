@@ -1,0 +1,104 @@
+---
+title: Exports and imports
+description: Keep imports discoverable, environment-safe, and resistant to accidental coupling.
+---
+
+## Public exports are machine-enforced
+
+`package.json#exports` is the only supported cross-package API. For example, database consumers
+use:
+
+```ts
+import { db, withTransaction } from '@repo/db/client';
+import { findProjectForUser } from '@repo/db/queries/example';
+```
+
+They do not use:
+
+```ts
+// Unsupported: private path and implementation detail.
+import { findProjectForUser } from '@repo/db/src/queries/example/project.queries';
+```
+
+When a capability becomes reusable, add it to the owning public barrel and its explicit subpath
+export. Do not create a broad root barrel that mixes Server and Client runtime code.
+
+## Internal aliases
+
+Every package can declare a local `#` import map. Use the nearest alias for package-internal
+cross-directory imports:
+
+```json
+{
+  "imports": {
+    "#billing-config/*": "./src/config/*.ts",
+    "#*": "./src/*.ts"
+  }
+}
+```
+
+```ts
+import { billingCatalog } from '#billing-config/billing-catalog';
+```
+
+Use `./file` for adjacent files, the package's `#` alias for internal cross-directory imports,
+`@repo/package/subpath` across packages, and `@/...` for Web app internals. Avoid three-level
+relative paths; restricted-import rules are intended to make ownership visible.
+
+## Package-by-package contract
+
+### `@repo/config`
+
+Use `@repo/config/env/server` only in server code and `@repo/config/env/client` only for the
+explicit browser-safe allowlist. `@repo/config/app` is server-only because it derives deployment
+configuration from validated server env. `@repo/config/urls` contains environment-independent URL
+schemas and normalization helpers; it does not read env or expose secrets. Config does not own
+Catalog, OAuth plugin composition, email templates, or nav.
+
+### `@repo/db`
+
+Use `client` for `db`/transactions, `schema` only for server-side Drizzle references, grouped
+query subpaths for named queries, and `testing` only from test configuration. `testing` is not a
+production dependency seam. The generated `schema/core.ts` is not a customization point.
+
+### `@repo/email`
+
+Use semantic senders from `@repo/email/server` (`sendMagicLinkEmail`,
+`sendEmailChangeNotice`, `sendWelcomeEmail` [compatibility extension], `sendPurchaseReceiptEmail`,
+and `sendPaymentFailedEmail`). `sendWelcomeEmail` currently has no welcome template or product
+flow. Use `sendEmail` only for a controlled extension. Use `templates` for Docs previews or tests;
+never import `providers/resend` or `providers/smtp` directly.
+
+### `@repo/billing`
+
+Use `config` for `billingCatalog` and provider-neutral config types, `types` for public types,
+`components` for `PricingTable`/`PlanCard`, and `server` for billing reads, checkout/portal,
+Credits, account-deletion preflight, and `createBetterAuthBillingPlugin`. Provider SDKs and hooks
+are private.
+
+### `@repo/auth`
+
+Use `server` for `auth`, `getSession`, `requireUser`, `requireAdmin`, profile/security mutations,
+and account deletion. Use `client` for restricted social/Magic Link operations. Use `config` for
+validated Auth configuration. Auth client code must not receive server helpers or provider tokens.
+
+### `@repo/i18n`
+
+Use `config` for `locales`, `defaultLocale`, and the `as-needed` prefix policy; `routing` for
+Next-intl route setup; `navigation` for localized Link/router/redirect; `server` and `client` for
+their matching runtime. Do not hand-build locale paths.
+
+### `@repo/ui`
+
+Use narrow component subpaths such as `@repo/ui/button` and `@repo/ui/theme`. The package only
+owns presentational primitives and semantic style tokens; it must not import Auth, Billing, DB,
+Email, or Config. The app can compose these primitives with route-local feature components.
+
+## Adding an export safely
+
+1. Decide which existing package owns the capability.
+2. Keep implementation in its feature/responsibility folder.
+3. Add a typed public barrel only if the capability is stable and environment-safe.
+4. Add one explicit `exports` subpath; do not expose the whole `src` tree.
+5. Update the package README and this contract if the public behavior changes.
+6. Run `pnpm deps:check`, the package typecheck, and the app build.

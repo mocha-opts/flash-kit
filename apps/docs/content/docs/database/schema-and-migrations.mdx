@@ -1,0 +1,73 @@
+---
+title: Schema and migrations
+description: Generate Better Auth schema, review custom migrations, and evolve production safely.
+---
+
+## Generate Better Auth core
+
+After changing Better Auth plugins or options, run:
+
+```bash
+pnpm --filter @repo/db auth:generate
+```
+
+The script loads `apps/web/.env` and `.env.development`, invokes the pinned Better Auth CLI using
+`packages/auth/src/auth.ts`, writes `packages/db/src/schema/core.ts`, and formats that generated
+file. Do not manually edit `core.ts`; review the generated diff and commit it with the Auth change.
+
+This wrapper intentionally loads those committed environment files and applies schema-generation
+defaults. It is different from Drizzle Kit: `packages/db/drizzle.config.ts` reads only
+`process.env.DATABASE_URL` from the current process and does not load `apps/web/.env.local`.
+
+## Generate and apply custom migrations
+
+Custom schema lives in `packages/db/src/schema/billing.ts` and `example.ts`; Drizzle Kit reads
+those plus generated core from `packages/db/drizzle.config.ts`:
+
+```bash
+export DATABASE_URL='postgres://flash_kit:flash_kit@localhost:54333/flash_kit'
+pnpm --filter @repo/db drizzle:generate
+pnpm --filter @repo/db drizzle:migrate
+```
+
+Every shell that runs `drizzle:generate` or `drizzle:migrate` must first provide
+`DATABASE_URL`; keep the exported value equal to the intended `apps/web/.env.local` value for
+local work, or set the production database URL explicitly in the migration release step.
+`drizzle:generate` writes SQL and `drizzle/meta` snapshots. Review both before applying. The
+current history is a forward-only journal under `packages/db/drizzle/`; migration code is never
+run as part of a Web or Docs build/startup.
+
+## Production migration sequence
+
+1. Back up the database and confirm point-in-time recovery.
+2. Generate and review the migration against the current schema.
+3. Apply it as a separate release step with the production `DATABASE_URL`.
+4. Deploy code compatible with both the old and new schema during a transition.
+5. Run smoke checks for Auth, Project, Billing, and Credits.
+
+Use Expand/Contract for breaking changes. Never edit or delete an applied migration and never add
+an automatic down migration. Roll back application code independently; repair the database with a
+new forward migration or point-in-time recovery.
+
+## Removing Project
+
+Project is intentionally isolated. Before removing it, search for `projects`, `project`, and
+`@repo/db/queries/example`. Then remove the Web route, nav/messages, `schema/example.ts`, its
+query subpath and package export when unused, and the Drizzle config entry. Keep historical
+migrations. If the table has already reached a shared database, remove it only with a new
+reviewed forward `DROP TABLE project` migration; do not rewrite history.
+
+After removal, confirm that Auth, Billing, Email, Admin, and both app builds still work. The
+Project example must not be a hidden dependency of the lower packages.
+
+## Checks
+
+```bash
+pnpm deps:check
+pnpm --filter @repo/db typecheck
+pnpm --filter web typecheck
+pnpm --filter web build
+```
+
+Migration commands require a real PostgreSQL connection. Do not substitute SQLite for production
+compatibility checks.

@@ -1,0 +1,93 @@
+---
+title: Local development
+description: A repeatable local workflow for the Web app, database, mail, and documentation.
+---
+
+## Repository workflow
+
+Run commands from the repository root so workspace protocol and catalog resolution remain
+consistent:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm compose:up
+export DATABASE_URL='postgres://flash_kit:flash_kit@localhost:54333/flash_kit'
+pnpm --filter @repo/db drizzle:migrate
+pnpm --filter web dev
+```
+
+Drizzle Kit reads only `process.env.DATABASE_URL` from the current shell; it does not load
+`apps/web/.env.local` automatically. Keep this export identical to the local file and repeat it
+before every `drizzle:generate` or `drizzle:migrate` command.
+
+Use `pnpm --filter <package> <script>` when working on one package. The available package scripts
+are intentionally small: runtime packages expose `typecheck`; the database package additionally
+exposes `auth:generate`, `drizzle:generate`, and `drizzle:migrate`; both apps expose `dev`,
+`build`, `start`, and `typecheck`.
+
+## PostgreSQL and Mailpit
+
+`compose.dev.yml` starts exactly two local services:
+
+| Service | Address | Purpose |
+| --- | --- | --- |
+| PostgreSQL 18 | `localhost:54333` | Drizzle and Better Auth persistence |
+| Mailpit | SMTP `localhost:1025`, UI `http://localhost:8025` | Development mail sink |
+
+The matching local values are already in `apps/web/.env.example`. Mailpit does not require SMTP
+credentials. In development, inspect Magic Link, email-change, receipt, and payment-failure
+messages in its UI instead of sending real mail. The exported `sendWelcomeEmail` function is
+currently only a compatibility extension point: there is no welcome React Email template or
+product flow that calls it.
+
+## Schema generation versus migration
+
+After changing Better Auth composition in `packages/auth/src/auth.ts`, regenerate the generated
+core schema and review the resulting diff:
+
+```bash
+pnpm --filter @repo/db auth:generate
+```
+
+After changing a custom schema file, generate a migration, review both SQL and metadata, then
+apply it to the local database:
+
+```bash
+pnpm --filter @repo/db drizzle:generate
+pnpm --filter @repo/db drizzle:migrate
+```
+
+Never edit an already-applied migration or add a down migration. For a deployed database, remove
+columns/tables with a new reviewed forward migration. See [Database](/docs/database) for the
+Expand/Contract rule and Project removal procedure.
+
+## Web and docs in parallel
+
+The two Next.js apps use separate ports and separate `.next` directories. Run them in separate
+terminals:
+
+```bash
+# terminal 1
+pnpm --filter web dev
+
+# terminal 2
+pnpm --filter docs dev
+```
+
+The docs app does not import `@repo/auth`, `@repo/billing`, `@repo/db`, or `@repo/email`; it
+documents those public boundaries and only consumes Fumadocs, React, and Next.js. This keeps docs
+builds independent from provider credentials and database availability.
+
+## Debugging checklist
+
+1. Run `pnpm setup` and fix the first missing prerequisite.
+2. Confirm `docker compose -f compose.dev.yml ps` shows PostgreSQL as `healthy`; Mailpit has no
+   Compose healthcheck, so confirm it is `running` and open `http://localhost:8025` to verify the
+   UI responds.
+3. Confirm `DATABASE_URL` includes port `54333`.
+4. Apply migrations before opening an authenticated Web route.
+5. Check Mailpit before changing Auth email code.
+6. Run `pnpm --filter docs build` independently when editing MDX or the content source.
+
+Do not add a background process to mask a failed request. Auth mail is synchronous; billing
+webhooks rely on Stripe/Polar protocol redelivery, and no internal retry loop exists.

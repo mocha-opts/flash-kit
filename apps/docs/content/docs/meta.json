@@ -1,0 +1,16 @@
+{
+  "title": "Flash Kit",
+  "pages": [
+    "index",
+    "getting-started",
+    "architecture",
+    "packages",
+    "authentication",
+    "billing",
+    "email",
+    "database",
+    "testing",
+    "deployment",
+    "customization"
+  ]
+}
